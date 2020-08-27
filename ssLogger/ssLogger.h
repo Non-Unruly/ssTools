@@ -13,6 +13,13 @@
 #include <string>
 #include <vector>
 #include <set>
+#include <iterator>
+#include <queue>
+
+#include <pthread.h>
+#include <sys/time.h>
+#include <unistd.h>
+#include <sys/stat.h>
 
 typedef struct _KEY_T_
 {
@@ -33,7 +40,7 @@ typedef struct _KEY_T_
 		keylen = len;
 		pos = pos_t;
 	};
-}key_t;
+}KEY_T;
 
 typedef struct _SSLOG_INFO_T_
 {
@@ -73,14 +80,18 @@ public:
 
 private:
 	static size_t size;
-	static std::vector<ssLog_info_t> logArray;
+	static std::queue<ssLog_info_t> logQueue;
 	static std::set<std::string> keys;
 
-	static std::string ssFormat(const char *format, va_list vaList);
-	static void insert(ssLog_info_t t);
+	static std::string ssFormat(const char *format, va_list vlist);
+	//static void insert(ssLog_info_t t);
+
+	static void *LogThread(void *arg);
 	
+	static std::string logNamePrefix;
+	static size_t logFileSize;
 public:
-	static void out();
+	//static void out();
 };
 
 #endif // !_SS_LOGGER_H_
