@@ -1,218 +1,100 @@
 #include "ssLogger.h"
 
 size_t ssLogger::size = 0;
-std::queue<ssLog_info_t> ssLogger::logQueue;
-std::set<std::string> ssLogger::keys = { "%c","%d","%ld","%c","%s","%f","%lf" ,"%x" };
+std::queue<ssLogger::ssLog_info_t> ssLogger::logQueue;
+std::set<std::string> ssLogger::keys /*= { "%c","%d","%ld","%c","%s","%f","%lf" ,"%x" }*/;
 
-std::string ssLogger::logNamePrefix = "ssLog";
+std::string ssLogger::logNamePrefix;
 size_t ssLogger::logFileSize = 1 * 1024 * 1024;
 
-unsigned int timetick()
+bool ssLogger::isInit = false;
+ssLogger::LOG_LEVEL ssLogger::logLevel = ALL;
+
+ssLogger::ssLogger()
 {
-	struct timeval tv;
-	gettimeofday(&tv, 0);
-	return tv.tv_usec / 1000 + tv.tv_sec * 1000;
 }
 
-std::string DateTime()
+bool ssLogger::init(const char * logPath, size_t fileSize, LOG_LEVEL level)
 {
-	static char timestr[200] = { 0 };
-	struct tm *pTempTm;
-	struct timeval time;
+	std::vector<std::string> pathStep = ssTools::ss_split(logPath, "/");
+	pathStep.erase((pathStep.end()--));
 
-	gettimeofday(&time, NULL);
-	pTempTm = localtime(&time.tv_sec);
-	if (NULL != pTempTm)
-	{
-		snprintf(timestr, 199, "[%04d-%02d-%02d %02d:%02d:%02d:%03ld]",
-			pTempTm->tm_year + 1900,
-			pTempTm->tm_mon + 1,
-			pTempTm->tm_mday,
-			pTempTm->tm_hour,
-			pTempTm->tm_min,
-			pTempTm->tm_sec,
-			time.tv_usec / 1000);
-	}
-	return std::string(timestr);
-}
+	std::string dir = ssTools::ss_keyJoint(pathStep, "/");
+	if (strlen(logPath) > 0 && logPath[0] == '/')
+		dir = "/" + dir;
+	ssTools::ss_makePath(dir.c_str());
 
-std::string Time()
-{
-	static char timestr[200] = { 0 };
-	struct tm *pTempTm;
-	struct timeval time;
+	isInit = false;
+	logLevel = level;
 
-	gettimeofday(&time, NULL);
-	pTempTm = localtime(&time.tv_sec);
-	if (NULL != pTempTm)
-	{
-		snprintf(timestr, 199, "%02d%02d%02d-%02d%02d%02d",
-			(pTempTm->tm_year + 1900) % 100,
-			pTempTm->tm_mon + 1,
-			pTempTm->tm_mday,
-			pTempTm->tm_hour,
-			pTempTm->tm_min,
-			pTempTm->tm_sec);
-	}
-	return std::string(timestr);
-}
+	keys.insert("%c");
+	keys.insert("%d");
+	keys.insert("%ld");
+	keys.insert("%c");
+	keys.insert("%s");
+	keys.insert("%f");
+	keys.insert("%lf");
+	keys.insert("%x");
 
-
-bool ssLogger::init(const char * logPath, size_t fileSize)
-{
 	logNamePrefix = logPath;
 	logFileSize = fileSize;
-	
+
 	pthread_t thd_t;
 	int res = pthread_create(&thd_t, NULL, &LogThread, NULL);
-	std::cout << "pthread create res= " << res << std::endl;
-	return true;
+	if (res == 0)
+		isInit = true;
+
+	return isInit;
 }
 
-void ssLogger::debug(const char * format, ...)
+void ssLogger::output(bool print, int level, const char * functionName, int line, const char * format, ...)
 {
+	if (!isInit)
+	{
+		throw("ssLogger no initialize!!!");
+		return;
+	}
+	std::string flag;
+	switch (level)
+	{
+	case 1:
+		flag = "[DBG]";
+		break;
+	case 2:
+		flag = "[INF]";
+		break;
+	case 3:
+		flag = "[WAR]";
+		break;
+	case 4:
+		flag = "[ERR]";
+		break;
+	case 5:
+		flag = "[DIS]";
+		break;
+	default:
+		flag = "[DBG]";
+		break;
+	}
 	va_list vlst;
 	va_start(vlst, format);
-	std::string prefix = DateTime() + "[DBG]";
-	std::string log = prefix + ssFormat(format, vlst);
+	std::string log = "[" + ssTools::ss_datetime() + "]" + flag + function_line(functionName, line) + ssFormat(format, vlst);
 	va_end(vlst);
 
-	ssLog_info_t t;
-	t.log = log;
-	t.isPrint = false;
-	logQueue.push(t);
-}
+	if (level >= logLevel)
+	{
+		ssLog_info_t t;
+		t.log = log;
+		t.isPrint = print;
+		logQueue.push(t);
+	}
 
-void ssLogger::info(const char * format, ...)
-{
-	va_list vlst;
-	va_start(vlst, format);
-	std::string prefix = DateTime()+ "[INF]";
-	std::string log = ssFormat(format, vlst);
-	va_end(vlst);
-
-	ssLog_info_t t;
-	t.log = log;
-	t.isPrint = false;
-	logQueue.push(t);
-}
-
-void ssLogger::warning(const char * format, ...)
-{
-	va_list vlst;
-	va_start(vlst, format);
-	std::string prefix = DateTime() + "[WAR]";
-	std::string log = prefix + ssFormat(format, vlst);
-	va_end(vlst);
-
-	ssLog_info_t t;
-	t.log = log;
-	t.isPrint = false;
-	logQueue.push(t);
-}
-
-void ssLogger::error(const char * format, ...)
-{
-	va_list vlst;
-	va_start(vlst, format);
-	std::string prefix = DateTime() + "[ERR]";
-	std::string log = prefix + ssFormat(format, vlst);
-	va_end(vlst);
-
-	ssLog_info_t t;
-	t.log = log;
-	t.isPrint = false;
-	logQueue.push(t);
-}
-
-void ssLogger::disaster(const char * format, ...)
-{
-	va_list vlst;
-	va_start(vlst, format);
-	std::string prefix = DateTime() + "[DIS]";
-	std::string log = prefix + ssFormat(format, vlst);
-	va_end(vlst);
-
-	ssLog_info_t t;
-	t.log = log;
-	t.isPrint = false;
-	logQueue.push(t);
-}
-
-void ssLogger::debugp(const char * format, ...)
-{
-	va_list vlst;
-	va_start(vlst, format);
-	std::string prefix = DateTime() + "[DBG]";
-	std::string log = prefix + ssFormat(format, vlst);
-	va_end(vlst);
-
-	ssLog_info_t t;
-	t.log = log;
-	t.isPrint = true;
-	logQueue.push(t);
-}
-
-void ssLogger::infop(const char * format, ...)
-{
-	va_list vlst;
-	va_start(vlst, format);
-	std::string prefix = DateTime() + "[INF]";
-	std::string log = prefix + ssFormat(format, vlst);
-	va_end(vlst);
-
-	ssLog_info_t t;
-	t.log = log;
-	t.isPrint = true;
-	logQueue.push(t);
-}
-
-void ssLogger::warningp(const char * format, ...)
-{
-	va_list vlst;
-	va_start(vlst, format);
-	std::string prefix = DateTime() + "[WAR]";
-	std::string log = prefix + ssFormat(format, vlst);
-	va_end(vlst);
-
-	ssLog_info_t t;
-	t.log = log;
-	t.isPrint = true;
-	logQueue.push(t);
-}
-
-void ssLogger::errorp(const char * format, ...)
-{
-	va_list vlst;
-	va_start(vlst, format);
-	std::string prefix = DateTime() + "[ERR]";
-	std::string log = prefix + ssFormat(format, vlst);
-	va_end(vlst);
-
-	ssLog_info_t t;
-	t.log = log;
-	t.isPrint = true;
-	logQueue.push(t);
-}
-
-void ssLogger::disasterp(const char * format, ...)
-{
-	va_list vlst;
-	va_start(vlst, format);
-	std::string prefix = DateTime() + "[DIS]";
-	std::string log = prefix + ssFormat(format, vlst);
-	va_end(vlst);
-
-	ssLog_info_t t;
-	t.log = log;
-	t.isPrint = true;
-	logQueue.push(t);
+	return;
 }
 
 std::string ssLogger::ssFormat(const char * format, va_list vlist)
 {
 	std::string m(format);
-	//std::cout << m << std::endl;
 
 	//计算全部关键词的信息
 	std::vector<KEY_T> fmtInfos;
@@ -234,6 +116,8 @@ std::string ssLogger::ssFormat(const char * format, va_list vlist)
 			}
 		}
 	}
+	if (fmtInfos.size() == 0)
+		return m;
 
 	std::vector<std::string> elems;
 	int last_pos = 0;
@@ -248,55 +132,54 @@ std::string ssLogger::ssFormat(const char * format, va_list vlist)
 	elems.push_back(elem);
 
 
-	//va_list arglist = vlist;
-	//memcpy(&arglist, &vaList, sizeof(vaList));
 	for (int i = 0, len = fmtInfos.size(); i < len; i++)
 	{
-		char txt[128];
+		char *txt = NULL;
 		if (fmtInfos[i].tagName == "%d")
 		{
+			txt = new char[32];
 			int x = va_arg(vlist, int);
 			sprintf(txt, "%d\0", x);
 		}
 		else if (fmtInfos[i].tagName == "%ld")
 		{
+			txt = new char[64];
 			long x = va_arg(vlist, long);
 			sprintf(txt, "%ld\0", x);
 		}
 		else if (fmtInfos[i].tagName == "%s")
 		{
 			std::string s = va_arg(vlist, const char*);
+			txt = new char[s.length() + 1];
 			sprintf(txt, "%s\0", s.c_str());
 		}
 		else if (fmtInfos[i].tagName == "%f")
 		{
+			txt = new char[64];
 			float f = va_arg(vlist, float);
 			sprintf(txt, "%f\0", f);
 		}
 		else if (fmtInfos[i].tagName == "%lf")
 		{
+			txt = new char[128];
 			double f = va_arg(vlist, double);
 			sprintf(txt, "%.8lf\0", f);
 		}
 		else if (fmtInfos[i].tagName == "%x")
 		{
+			txt = new char[32];
 			int x = va_arg(vlist, int);
 			sprintf(txt, "0x%02x\0", x);
 		}
 		else if (fmtInfos[i].tagName == "%c")
 		{
+			txt = new char[8];
 			char c = va_arg(vlist, char);
 			sprintf(txt, "%c\0", c);
 		}
 		fmtInfos[i].txt = std::string(txt);
+		delete txt;
 	}
-
-	//for (auto x : elems)
-	//	std::cout << x << " $ ";
-	//std::cout << std::endl;
-	//for (auto x : fmtInfos)
-	//	std::cout << x.txt << " # ";
-	//std::cout << std::endl;
 
 	std::string log;
 	std::vector<std::string>::iterator titer;
@@ -313,14 +196,22 @@ std::string ssLogger::ssFormat(const char * format, va_list vlist)
 	return log;
 }
 
-//void ssLogger::insert(ssLog_info_t t)
-//{
-//}
+std::string ssLogger::function_line(const char * function, int line)
+{
+	std::string strfl = "";
+	if (strlen(function) > 0 || line > 0)
+	{
+		char fl[512];
+		sprintf(fl, "%s:%d | \0", function, line);
+		strfl = fl;
+	}
+	return strfl;
+}
 
 void * ssLogger::LogThread(void * arg)
 {
-	std::cout << "thread in" << std::endl;
-	std::string fileName = logNamePrefix + "-" + Time() + ".ssLog";
+	std::string logTime = ssTools::ss_datetime();
+	std::string fileName = logNamePrefix + ".log";
 	FILE *f = fopen(fileName.c_str(), "at+");
 	if (f == NULL)
 	{
@@ -332,25 +223,26 @@ void * ssLogger::LogThread(void * arg)
 	{
 		while (logQueue.size() <= 0)
 		{
-			usleep(5);
+			usleep(50 * 1000);
 		}
 		ssLog_info_t log_t = logQueue.front();
 		logQueue.pop();
 		std::string txt = log_t.log + "\n";
-		//std::cout << txt << std::endl;
 		if (log_t.isPrint == true)
 			printf("%s", txt.c_str());
 		fwrite(txt.c_str(), 1, txt.length(), f);
 		fflush(f);
 		sum += txt.length();
-		
+
 		if (sum >= logFileSize)
 		{
-			std::cout << "size out" << std::endl;
 			fclose(f);
+			std::string newname = logNamePrefix + "-" + logTime + ".log";
+			rename(fileName.c_str(), newname.c_str());
 			f = NULL;
 			sum = 0;
-			fileName = logNamePrefix + "-" + Time() + ".ssLog";
+			logTime = ssTools::ss_datetime();
+			fileName = logNamePrefix + ".log";
 			f = fopen(fileName.c_str(), "at+");
 			if (f == NULL)
 			{
@@ -361,14 +253,3 @@ void * ssLogger::LogThread(void * arg)
 	}
 	return NULL;
 }
-
-//void ssLogger::out()
-//{
-//	std::stack<ssLog_info_t> stk = logStack;
-//	while (stk.size() == 0)
-//	{
-//		std::string log = stk.top().log;
-//		std::cout << log << std::endl;
-//		stk.pop();
-//	}
-//}
