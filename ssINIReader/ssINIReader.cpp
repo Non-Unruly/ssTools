@@ -1,9 +1,8 @@
 #include "ssINIReader.h"
 
+ssINIReader *ssINIReader::inst = NULL;
 
-ssINIReader* ssINIReader::inst = NULL;
-
-ssINIReader* ssINIReader::instance()
+ssINIReader *ssINIReader::instance()
 {
     if (inst == NULL)
         inst = new ssINIReader();
@@ -27,7 +26,7 @@ std::string ssINIReader::trim(std::string str)
     return str;
 }
 
-bool ssINIReader::Load(const char* _iniFilePath)
+bool ssINIReader::Load(const char *_iniFilePath)
 {
     if (_iniFilePath == NULL || strlen(_iniFilePath) <= 0)
     {
@@ -37,7 +36,7 @@ bool ssINIReader::Load(const char* _iniFilePath)
 
     ini.clear();
 
-    FILE* f = fopen(_iniFilePath, "r");
+    FILE *f = fopen(_iniFilePath, "r");
     if (f == NULL)
     {
         errmsg = "file open error";
@@ -62,13 +61,13 @@ bool ssINIReader::Load(const char* _iniFilePath)
             if (pos >= data.size())
                 break;
         }
-        
+
         if (data.empty())
             continue;
         if (data[0] == ';' || data[0] == '#')
             continue;
-        
-        //判断是否为新的[root]结点
+
+        //鍒ゆ柇鏄惁涓烘柊鐨刐root]缁撶偣
         if (data.front() == '[' && data.back() == ']')
         {
             std::string str = data.substr(1, data.size() - 2);
@@ -78,7 +77,7 @@ bool ssINIReader::Load(const char* _iniFilePath)
                 root = str;
             continue;
         }
-        
+
         int spacePos = data.find('=');
         std::string tKey = data.substr(0, spacePos);
         std::string tValue = data.substr(spacePos + 1, data.size());
@@ -117,5 +116,3 @@ bool ssINIReader::GetBoolValue(std::string _root, std::string _key)
     res = ini[_root][_key];
     return (res == "true" ? true : false);
 }
-
-

@@ -3,7 +3,7 @@
 
 #ifdef WIN32
 #ifndef _CRT_SECURE_NO_WARNINGS
-#define _CRT_SECURE_NO_WARNINGS	
+#define _CRT_SECURE_NO_WARNINGS
 #endif // !_CRT_SECURE_NO_WARNINGS
 #endif // WIN32
 
@@ -24,17 +24,17 @@
 
 #include "ssTools.h"
 
-#define sslogDebug(...) ssLogger::output(true,1,__FUNCTION__,__LINE__,__VA_ARGS__)
-#define sslogInfo(...) ssLogger::output(true,2,__FUNCTION__,__LINE__,__VA_ARGS__)
-#define sslogWarn(...) ssLogger::output(true,3,__FUNCTION__,__LINE__,__VA_ARGS__)
-#define sslogError(...) ssLogger::output(true,4,__FUNCTION__,__LINE__,__VA_ARGS__)
-#define sslogDisaster(...) ssLogger::output(true,5,__FUNCTION__,__LINE__,__VA_ARGS__)
+#define sslogDebug(...) ssLogger::output(true, 1, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define sslogInfo(...) ssLogger::output(true, 2, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define sslogWarn(...) ssLogger::output(true, 3, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define sslogError(...) ssLogger::output(true, 4, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define sslogDisaster(...) ssLogger::output(true, 5, __FUNCTION__, __LINE__, __VA_ARGS__)
 
-#define sslogDebug_np(...) ssLogger::output(false,1,__FUNCTION__,__LINE__,__VA_ARGS__)
-#define sslogInfo_np(...) ssLogger::output(false,2,__FUNCTION__,__LINE__,__VA_ARGS__)
-#define sslogWarn_np(...) ssLogger::output(false,3,__FUNCTION__,__LINE__,__VA_ARGS__)
-#define sslogError_np(...) ssLogger::output(false,4,__FUNCTION__,__LINE__,__VA_ARGS__)
-#define sslogDisaster_np(...) ssLogger::output(false,5,__FUNCTION__,__LINE__,__VA_ARGS__)
+#define sslogDebug_np(...) ssLogger::output(false, 1, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define sslogInfo_np(...) ssLogger::output(false, 2, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define sslogWarn_np(...) ssLogger::output(false, 3, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define sslogError_np(...) ssLogger::output(false, 4, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define sslogDisaster_np(...) ssLogger::output(false, 5, __FUNCTION__, __LINE__, __VA_ARGS__)
 
 class ssLogger
 {
@@ -51,25 +51,25 @@ public:
 
 	ssLogger();
 
-	//ÈÕÖ¾Ä£¿é³õÊ¼»¯º¯Êı log module initialize function
-	//logPath ÈÕÖ¾ÎÄ¼şÂ·¾¶£¨×Ô¶¯Ìí¼Ó.logºó×ºÃû£© log file path (auto to add ".log" file suffix)
-	//fileSize ÈÕÖ¾ÎÄ¼ş´óĞ¡£¨Ğ´Âúºó£¬´´½¨ĞÂµÄÈÕÖ¾ÎÄ¼ş£¬¾ÉÈÕÖ¾ÎÄ¼şÖØÃüÃû×Ô¶¯Ôö¼Ó´´½¨Ê±¼ä´Áºó×º£©log file's max size . if out of range , create new log file and old file will rename append timetick string
-	//level ÈÕÖ¾¾«×¼µÈ¼¶[0~5] µÈ¼¶Ô½¸ß£¬Êä³öµÄÈÕÖ¾Ô½¾«È·£¬ÈÕÖ¾Á¿Ô½ÉÙ the type/level of log , high level and fewer log and more accurate log
+	//æ—¥å¿—æ¨¡å—åˆå§‹åŒ–å‡½æ•° log module initialize function
+	//logPath æ—¥å¿—æ–‡ä»¶è·¯å¾„ï¼ˆè‡ªåŠ¨æ·»åŠ .logåç¼€åï¼‰ log file path (auto to add ".log" file suffix)
+	//fileSize æ—¥å¿—æ–‡ä»¶å¤§å°ï¼ˆå†™æ»¡åï¼Œåˆ›å»ºæ–°çš„æ—¥å¿—æ–‡ä»¶ï¼Œæ—§æ—¥å¿—æ–‡ä»¶é‡å‘½åè‡ªåŠ¨å¢åŠ åˆ›å»ºæ—¶é—´æˆ³åç¼€ï¼‰log file's max size . if out of range , create new log file and old file will rename append timetick string
+	//level æ—¥å¿—ç²¾å‡†ç­‰çº§[0~5] ç­‰çº§è¶Šé«˜ï¼Œè¾“å‡ºçš„æ—¥å¿—è¶Šç²¾ç¡®ï¼Œæ—¥å¿—é‡è¶Šå°‘ the type/level of log , high level and fewer log and more accurate log
 	static bool init(const char *logPath, size_t fileSize, LOG_LEVEL level = ALL);
 
-	//Ìí¼ÓÈÕÖ¾×Ö·û´®
-	//print ÊÇ·ñÊä³öµ½ÆÁÄ» whether the text is displayed on the screen
-	//type ÈÕÖ¾ÀàĞÍÓ³ÉäÎªµÈ¼¶ log's type/level (enum LOG_LEVEL)
-	//functionName µ±Ç°ËùÔÚº¯ÊıµÄº¯ÊıÃû log's function name
-	//line ÈÕÖ¾µãĞĞÊı log's line number
-	//format ÈÕÖ¾¸ñÊ½ format , support %d %ld %s %c %f %lf(%.8lf) %x(0x%02x)
-	static void output(bool print, int type, const char * functionName, int line, const char* format, ...);
+	//æ·»åŠ æ—¥å¿—å­—ç¬¦ä¸²
+	//print æ˜¯å¦è¾“å‡ºåˆ°å±å¹• whether the text is displayed on the screen
+	//type æ—¥å¿—ç±»å‹æ˜ å°„ä¸ºç­‰çº§ log's type/level (enum LOG_LEVEL)
+	//functionName å½“å‰æ‰€åœ¨å‡½æ•°çš„å‡½æ•°å log's function name
+	//line æ—¥å¿—ç‚¹è¡Œæ•° log's line number
+	//format æ—¥å¿—æ ¼å¼ format , support %d %ld %s %c %f %lf(%.8lf) %x(0x%02x)
+	static void output(bool print, int type, const char *functionName, int line, const char *format, ...);
 
 	typedef struct _KEY_T_
 	{
-		std::string tagName;//¹Ø¼ü´Ê
-		int keylen;//¹Ø¼ü´Ê³¤¶È
-		int pos;//¹Ø¼ü´ÊÆğÊ¼Î»ÖÃ
+		std::string tagName; //å…³é”®è¯
+		int keylen;			 //å…³é”®è¯é•¿åº¦
+		int pos;			 //å…³é”®è¯èµ·å§‹ä½ç½®
 		std::string txt;
 		_KEY_T_()
 		{
@@ -84,7 +84,7 @@ public:
 			keylen = len;
 			pos = pos_t;
 		};
-	}KEY_T;
+	} KEY_T;
 
 	typedef struct _SSLOG_INFO_T_
 	{
@@ -103,11 +103,12 @@ public:
 			log = logText;
 			isPrint = print;
 		}
-	}ssLog_info_t;
+	} ssLog_info_t;
 
 private:
 	static bool isInit;
 	static size_t size;
+	static pthread_mutex_t qMtx;
 	static std::queue<ssLogger::ssLog_info_t> logQueue;
 	static std::set<std::string> keys;
 
@@ -122,7 +123,3 @@ private:
 };
 
 #endif // !_SS_LOGGER_H_
-
-
-
-

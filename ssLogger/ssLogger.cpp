@@ -1,6 +1,7 @@
 #include "ssLogger.h"
 
 size_t ssLogger::size = 0;
+pthread_mutex_t ssLogger::qMtx;
 std::queue<ssLogger::ssLog_info_t> ssLogger::logQueue;
 std::set<std::string> ssLogger::keys /*= { "%c","%d","%ld","%c","%s","%f","%lf" ,"%x" }*/;
 
@@ -14,7 +15,7 @@ ssLogger::ssLogger()
 {
 }
 
-bool ssLogger::init(const char * logPath, size_t fileSize, LOG_LEVEL level)
+bool ssLogger::init(const char *logPath, size_t fileSize, LOG_LEVEL level)
 {
 	std::vector<std::string> pathStep = ssTools::ss_split(logPath, "/");
 	pathStep.erase((pathStep.end()--));
@@ -47,7 +48,7 @@ bool ssLogger::init(const char * logPath, size_t fileSize, LOG_LEVEL level)
 	return isInit;
 }
 
-void ssLogger::output(bool print, int level, const char * functionName, int line, const char * format, ...)
+void ssLogger::output(bool print, int level, const char *functionName, int line, const char *format, ...)
 {
 	if (!isInit)
 	{
@@ -86,17 +87,19 @@ void ssLogger::output(bool print, int level, const char * functionName, int line
 		ssLog_info_t t;
 		t.log = log;
 		t.isPrint = print;
+		pthread_mutex_lock(&qMtx);
 		logQueue.push(t);
+		pthread_mutex_unlock(&qMtx);
 	}
 
 	return;
 }
 
-std::string ssLogger::ssFormat(const char * format, va_list vlist)
+std::string ssLogger::ssFormat(const char *format, va_list vlist)
 {
 	std::string m(format);
 
-	//计算全部关键词的信息
+	//璁＄畻鍏ㄩ儴鍏抽敭璇嶇殑淇℃伅
 	std::vector<KEY_T> fmtInfos;
 	for (int i = 0, len = m.length(); i < len; i++)
 	{
@@ -131,7 +134,6 @@ std::string ssLogger::ssFormat(const char * format, va_list vlist)
 	std::string elem = m.substr(fmtInfos.back().pos + fmtInfos.back().keylen, -1);
 	elems.push_back(elem);
 
-
 	for (int i = 0, len = fmtInfos.size(); i < len; i++)
 	{
 		char *txt = NULL;
@@ -149,7 +151,7 @@ std::string ssLogger::ssFormat(const char * format, va_list vlist)
 		}
 		else if (fmtInfos[i].tagName == "%s")
 		{
-			std::string s = va_arg(vlist, const char*);
+			std::string s = va_arg(vlist, const char *);
 			txt = new char[s.length() + 1];
 			sprintf(txt, "%s\0", s.c_str());
 		}
@@ -196,7 +198,7 @@ std::string ssLogger::ssFormat(const char * format, va_list vlist)
 	return log;
 }
 
-std::string ssLogger::function_line(const char * function, int line)
+std::string ssLogger::function_line(const char *function, int line)
 {
 	std::string strfl = "";
 	if (strlen(function) > 0 || line > 0)
@@ -208,7 +210,7 @@ std::string ssLogger::function_line(const char * function, int line)
 	return strfl;
 }
 
-void * ssLogger::LogThread(void * arg)
+void *ssLogger::LogThread(void *arg)
 {
 	std::string logTime = ssTools::ss_datetime();
 	std::string fileName = logNamePrefix + ".log";
@@ -221,12 +223,20 @@ void * ssLogger::LogThread(void * arg)
 	size_t sum = 0;
 	while (true)
 	{
-		while (logQueue.size() <= 0)
+		while (true)
 		{
-			usleep(50 * 1000);
+			pthread_mutex_lock(&qMtx);
+			int s = logQueue.size();
+			pthread_mutex_unlock(&qMtx);
+			if (s <= 0)
+				usleep(50 * 1000);
+			else
+				break;
 		}
+		pthread_mutex_lock(&qMtx);
 		ssLog_info_t log_t = logQueue.front();
 		logQueue.pop();
+		pthread_mutex_unlock(&qMtx);
 		std::string txt = log_t.log + "\n";
 		if (log_t.isPrint == true)
 			printf("%s", txt.c_str());
