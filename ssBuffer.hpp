@@ -32,8 +32,6 @@ public:
 
     std::string GetLastErrorString();
 
-    void output();
-
     enum ssBufferCode
     {
         YES,
@@ -156,14 +154,6 @@ int ssBuffer<T>::Reset()
     m_pos_read = 0;
     m_pos_write = 0;
     return YES;
-}
-
-template <class T>
-void ssBuffer<T>::output()
-{
-    for (int i = 0; i < m_capcity; i++)
-        std::cout << m_buffer[i] << " ";
-    std::cout << std::endl;
 }
 
 #endif
