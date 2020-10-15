@@ -56,6 +56,9 @@ private:
 template <class T>
 ssBuffer<T>::ssBuffer(size_t _bufferLength)
 {
+    if (_bufferLength <= 0)
+        throw "buffer capcity couldn't be less than or equal to 0";
+
     m_capcity = _bufferLength;
     m_buffer = new T[m_capcity];
     m_isInit = true;
