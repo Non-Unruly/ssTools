@@ -10,3 +10,4 @@ Feature:
 2.简单ini配置文件读取 Simple ini config file reader module  
 3.简单字符串处理功能 Simple string handling function, split/join function like python's split/join  
 4.简单时间戳功能 Simple date timestamp function  
+5.简单缓冲区模块 Simple buffer manager module
