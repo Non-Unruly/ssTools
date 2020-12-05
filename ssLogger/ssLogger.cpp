@@ -1,7 +1,13 @@
 #include "ssLogger.h"
 
 size_t ssLogger::size = 0;
+
+#if defined _WIN32
+std::mutex ssLogger::qMtx;
+#else
 pthread_mutex_t ssLogger::qMtx;
+#endif
+
 std::queue<ssLogger::ssLog_info_t> ssLogger::logQueue;
 std::set<std::string> ssLogger::keys /*= { "%c","%d","%ld","%c","%s","%f","%lf" ,"%x" }*/;
 
@@ -40,11 +46,15 @@ bool ssLogger::init(const char *logPath, size_t fileSize, LOG_LEVEL level)
 	logNamePrefix = logPath;
 	logFileSize = fileSize;
 
+#if defined _WIN32
+	std::thread thd(LogThread);
+	isInit = true;
+#else
 	pthread_t thd_t;
 	int res = pthread_create(&thd_t, NULL, &LogThread, NULL);
 	if (res == 0)
 		isInit = true;
-
+#endif
 	return isInit;
 }
 
@@ -87,9 +97,9 @@ void ssLogger::output(bool print, int level, const char *functionName, int line,
 		ssLog_info_t t;
 		t.log = log;
 		t.isPrint = print;
-		pthread_mutex_lock(&qMtx);
+		ss_lock(qMtx);
 		logQueue.push(t);
-		pthread_mutex_unlock(&qMtx);
+		ss_unlock(qMtx);
 	}
 
 	return;
@@ -210,7 +220,13 @@ std::string ssLogger::function_line(const char *function, int line)
 	return strfl;
 }
 
+
+
+#if defined _WIN32
+void ssLogger::LogThread()
+#else
 void *ssLogger::LogThread(void *arg)
+#endif
 {
 	std::string logTime = ssTools::ss_datetime();
 	std::string fileName = logNamePrefix + ".log";
@@ -218,25 +234,33 @@ void *ssLogger::LogThread(void *arg)
 	if (f == NULL)
 	{
 		throw("ssLogger create file error!");
-		return NULL;
+		goto END;
 	}
 	size_t sum = 0;
 	while (true)
 	{
 		while (true)
 		{
-			pthread_mutex_lock(&qMtx);
+			ss_lock(qMtx);
 			int s = logQueue.size();
-			pthread_mutex_unlock(&qMtx);
+			ss_unlock(qMtx);
 			if (s <= 0)
+			{
+#if defined _WIN32
+				Sleep(50 * 1000);
+#else
 				usleep(50 * 1000);
+#endif
+			}
 			else
+			{
 				break;
+			}
 		}
-		pthread_mutex_lock(&qMtx);
+		ss_lock(qMtx);
 		ssLog_info_t log_t = logQueue.front();
 		logQueue.pop();
-		pthread_mutex_unlock(&qMtx);
+		ss_unlock(qMtx);
 		std::string txt = log_t.log + "\n";
 		if (log_t.isPrint == true)
 			printf("%s", txt.c_str());
@@ -257,9 +281,34 @@ void *ssLogger::LogThread(void *arg)
 			if (f == NULL)
 			{
 				throw("ssLogger create file error!");
-				return NULL;
+				goto END;
 			}
 		}
 	}
+END:
+#if defined _WIN32
+	return;
+#else
 	return NULL;
+#endif
 }
+
+#if defined _WIN32
+void ssLogger::ss_lock(std::mutex &mtx)
+{
+	mtx.lock();
+}
+void ssLogger::ss_unlock(std::mutex &mtx)
+{
+	mtx.unlock();
+}
+#else
+void ssLogger::ss_lock(pthread_mutex_t &mtx)
+{
+	pthread_mutex_lock(&mtx);
+}
+void ssLogger::ss_unlock(pthread_mutex_t &mtx)
+{
+	pthread_mutex_unlock(&mtx);
+}
+#endif

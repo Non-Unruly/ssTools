@@ -1,11 +1,11 @@
 #ifndef _SS_LOGGER_H_
 #define _SS_LOGGER_H_
 
-#ifdef WIN32
-#ifndef _CRT_SECURE_NO_WARNINGS
-#define _CRT_SECURE_NO_WARNINGS
-#endif // !_CRT_SECURE_NO_WARNINGS
-#endif // WIN32
+#if defined _WIN32
+	#ifndef _CRT_SECURE_NO_WARNINGS
+	#define _CRT_SECURE_NO_WARNINGS
+	#endif
+#endif
 
 #include <iostream>
 #include <stdarg.h>
@@ -17,12 +17,20 @@
 #include <queue>
 #include <cstdio>
 
+#if defined _WIN32
+
+#include <thread>
+#include <mutex>
+
+#else
+//Linux
 #include <pthread.h>
 #include <sys/time.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#endif
 
-#include "ssTools.h"
+#include "../ssTools.h"
 
 #define sslogDebug(...) ssLogger::output(true, 1, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define sslogInfo(...) ssLogger::output(true, 2, __FUNCTION__, __LINE__, __VA_ARGS__)
@@ -42,10 +50,10 @@ public:
 	enum LOG_LEVEL
 	{
 		ALL,
-		DEBUG,
-		INFO,
-		WARNING,
-		ERROR,
+		DBG,
+		INF,
+		WAR,
+		ERR,
 		DISASTER,
 	};
 
@@ -64,27 +72,6 @@ public:
 	//line 日志点行数 log's line number
 	//format 日志格式 format , support %d %ld %s %c %f %lf(%.8lf) %x(0x%02x)
 	static void output(bool print, int type, const char *functionName, int line, const char *format, ...);
-
-	typedef struct _KEY_T_
-	{
-		std::string tagName; //关键词
-		int keylen;			 //关键词长度
-		int pos;			 //关键词起始位置
-		std::string txt;
-		_KEY_T_()
-		{
-			tagName = "";
-			keylen = 0;
-			pos = -1;
-			txt = "";
-		};
-		_KEY_T_(std::string tag, int len, int pos_t)
-		{
-			tagName = tag;
-			keylen = len;
-			pos = pos_t;
-		};
-	} KEY_T;
 
 	typedef struct _SSLOG_INFO_T_
 	{
@@ -105,21 +92,57 @@ public:
 		}
 	} ssLog_info_t;
 
+	typedef struct _KEY_T_
+	{
+		int keylen;
+		int pos;
+		std::string tagName;
+		std::string txt;
+		_KEY_T_()
+		{
+			tagName = "";
+			keylen = 0;
+			pos = -1;
+			txt = "";
+		};
+		_KEY_T_(std::string tag, int len, int pos_t)
+		{
+			tagName = tag;
+			keylen = len;
+			pos = pos_t;
+		};
+	} KEY_T;
+
 private:
 	static bool isInit;
 	static size_t size;
+#if defined _WIN32
+	static std::mutex qMtx;
+#else
 	static pthread_mutex_t qMtx;
+#endif
 	static std::queue<ssLogger::ssLog_info_t> logQueue;
 	static std::set<std::string> keys;
 
 	static std::string ssFormat(const char *format, va_list vlist);
 	static std::string function_line(const char *function, int line);
 
+#if defined _WIN32
+	static void LogThread();
+#else
 	static void *LogThread(void *arg);
-
+#endif
 	static std::string logNamePrefix;
 	static size_t logFileSize;
 	static LOG_LEVEL logLevel;
+
+#if defined _WIN32
+	static void ss_lock(std::mutex &mtx);
+	static void ss_unlock(std::mutex &mtx);
+#else
+	static void ss_lock(pthread_mutex_t &mtx);
+	static void ss_unlock(pthread_mutex_t &mtx);
+#endif
 };
 
 #endif // !_SS_LOGGER_H_

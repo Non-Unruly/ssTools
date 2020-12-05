@@ -185,4 +185,10 @@ int ssBuffer<T>::Reset()
     return YES;
 }
 
+template<class T>
+inline std::string ssBuffer<T>::GetLastErrorString()
+{
+	return m_err_str;
+}
+
 #endif

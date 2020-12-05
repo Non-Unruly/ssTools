@@ -8,37 +8,47 @@
 #include <algorithm>
 #include <iostream>
 #include <cstdlib>
+#include <math.h>
 
 #if defined _WIN32 || defined _WIN64
+
+#include <Windows.h>
+#include <time.h>
+
 #else
+//Linux
 #include <unistd.h>
 #include <sys/time.h>
 #include <sys/stat.h>
 #include <errno.h>
 #include <fcntl.h>
+
 #endif //  WIN
 
 namespace ssTools
 {
-	//×Ö·û´®·Ö¸î split string by key string
-	//½«str¸ù¾İkey½øĞĞ·Ö¸î£¬·µ»Østd::stringË³Ğò±í
+	//å­—ç¬¦ä¸²åˆ†å‰² split string by key string
+	//å°†stræ ¹æ®keyè¿›è¡Œåˆ†å‰²ï¼Œè¿”å›std::stringé¡ºåºè¡¨
 	std::vector<std::string> ss_split(std::string str, std::string key);
 
-	//×Ö·û´®Æ´½Ó string text joint by key string
-	//Ê¹ÓÃkey½«×Ö·ûË³Ğò±íelems½øĞĞÁ¬½Ó£¬leftJoint/rightJointÈ·ÈÏ×Ö·û´®Í·×ó±ß»òÕßÓÒ±ßÊÇ·ñĞèÒªÌí¼Ókey
+	//å­—ç¬¦ä¸²æ‹¼æ¥ string text joint by key string
+	//ä½¿ç”¨keyå°†å­—ç¬¦é¡ºåºè¡¨elemsè¿›è¡Œè¿æ¥ï¼ŒleftJoint/rightJointç¡®è®¤å­—ç¬¦ä¸²å¤´å·¦è¾¹æˆ–è€…å³è¾¹æ˜¯å¦éœ€è¦æ·»åŠ key
 	std::string ss_keyJoint(std::vector<std::string> elems, std::string key, bool leftJoint = false, bool rightJoint = false);
 
-	//·µ»ØÊ±¼ä´ÁLinux
-	unsigned int ss_timetick();
+	//è¿”å›æ—¶é—´æˆ³
+	unsigned long ss_timetick();
 
-	//linux
-	//¸ñÊ½£º Äê-ÔÂ-ÈÕ Ê±:·Ö:Ãë:ºÁÃë
+	//æ ¼å¼ï¼š å¹´-æœˆ-æ—¥ æ—¶:åˆ†:ç§’:æ¯«ç§’
 	//format: "yyyy-MM-dd hh:mm:ss:ms
 	std::string ss_datetime();
 
-	//linux
-	//µİ¹é´´½¨Ä¿Â¼ recursive make path
+	//é€’å½’åˆ›å»ºç›®å½• recursive make path
 	bool ss_makePath(const char *path);
+
+	//åå…­è¿›åˆ¶å­—ç¬¦ä¸²è½¬åè¿›åˆ¶ Hex(char*) to Dec(short)
+	//Format: FF 0f a1
+	//Illegal Format: 0xff x10 9
+	short hex2i(const char *_hex);
 }
 
 
