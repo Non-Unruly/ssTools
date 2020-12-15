@@ -1,3 +1,11 @@
+//@ Project : ssTools
+//@ Copyright : Non-unruly (Git)
+//@ Git: https://github.com/Non-Unruly/ssTools
+//@
+//@ Launch Date : 2020-06-27
+//@ Update: 2020-12-15
+
+
 #ifndef _SSTOOLS_H_
 #define _SSTOOLS_H_
 

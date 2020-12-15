@@ -1,11 +1,20 @@
+//@ Project : ssTools
+//@ Copyright : Non-unruly (Git)
+//@ Git: https://github.com/Non-Unruly/ssTools
+//@
+//@ Launch Date : 2020-06-27
+//@ Update: 2020-12-15
+
 #include "ssLogger.h"
 
 size_t ssLogger::size = 0;
 
 #if defined _WIN32
 std::mutex ssLogger::qMtx;
+#define SEPARATOR "\\"
 #else
 pthread_mutex_t ssLogger::qMtx;
+#define SEPARATOR "/"
 #endif
 
 std::queue<ssLogger::ssLog_info_t> ssLogger::logQueue;
@@ -16,6 +25,8 @@ size_t ssLogger::logFileSize = 1 * 1024 * 1024;
 
 bool ssLogger::isInit = false;
 ssLogger::LOG_LEVEL ssLogger::logLevel = ALL;
+FILE *ssLogger::f = NULL;
+std::string ssLogger::fileName = "";
 
 ssLogger::ssLogger()
 {
@@ -23,12 +34,14 @@ ssLogger::ssLogger()
 
 bool ssLogger::init(const char *logPath, size_t fileSize, LOG_LEVEL level)
 {
-	std::vector<std::string> pathStep = ssTools::ss_split(logPath, "/");
-	pathStep.erase((pathStep.end()--));
+	std::vector<std::string> pathStep = ssTools::ss_split(logPath, SEPARATOR);
+	pathStep.erase(--pathStep.end());
 
-	std::string dir = ssTools::ss_keyJoint(pathStep, "/");
-	if (strlen(logPath) > 0 && logPath[0] == '/')
-		dir = "/" + dir;
+	std::string dir = ssTools::ss_keyJoint(pathStep, SEPARATOR);
+	if (strlen(logPath) > 0 && std::string(1, logPath[0]) == SEPARATOR)
+	{
+		dir = SEPARATOR + dir;
+	}
 	ssTools::ss_makePath(dir.c_str());
 
 	isInit = false;
@@ -46,8 +59,17 @@ bool ssLogger::init(const char *logPath, size_t fileSize, LOG_LEVEL level)
 	logNamePrefix = logPath;
 	logFileSize = fileSize;
 
+	fileName = logNamePrefix + ".log";
+	f = fopen(fileName.c_str(), "at+");
+	if (f == NULL)
+	{
+		throw("ssLogger create file error!");
+		return false;
+	}
+
 #if defined _WIN32
 	std::thread thd(LogThread);
+	thd.detach();
 	isInit = true;
 #else
 	pthread_t thd_t;
@@ -58,7 +80,7 @@ bool ssLogger::init(const char *logPath, size_t fileSize, LOG_LEVEL level)
 	return isInit;
 }
 
-void ssLogger::output(bool print, int level, const char *functionName, int line, const char *format, ...)
+void ssLogger::output(bool print, int level, const char *srcName, const char *functionName, int line, const char *format, ...)
 {
 	if (!isInit)
 	{
@@ -89,7 +111,7 @@ void ssLogger::output(bool print, int level, const char *functionName, int line,
 	}
 	va_list vlst;
 	va_start(vlst, format);
-	std::string log = "[" + ssTools::ss_datetime() + "]" + flag + function_line(functionName, line) + ssFormat(format, vlst);
+	std::string log = "[" + ssTools::ss_datetime() + "]" + flag + function_line(srcName, functionName, line) + ssFormat(format, vlst);
 	va_end(vlst);
 
 	if (level >= logLevel)
@@ -208,13 +230,13 @@ std::string ssLogger::ssFormat(const char *format, va_list vlist)
 	return log;
 }
 
-std::string ssLogger::function_line(const char *function, int line)
+std::string ssLogger::function_line(const char *src, const char *function, int line)
 {
 	std::string strfl = "";
 	if (strlen(function) > 0 || line > 0)
 	{
 		char fl[512];
-		sprintf(fl, "%s:%d | \0", function, line);
+		sprintf(fl, "[%s] %s:%d | \0", src, function, line);
 		strfl = fl;
 	}
 	return strfl;
@@ -228,15 +250,8 @@ void ssLogger::LogThread()
 void *ssLogger::LogThread(void *arg)
 #endif
 {
-	std::string logTime = ssTools::ss_datetime();
-	std::string fileName = logNamePrefix + ".log";
-	FILE *f = fopen(fileName.c_str(), "at+");
-	if (f == NULL)
-	{
-		throw("ssLogger create file error!");
-		goto END;
-	}
 	size_t sum = 0;
+	std::string logTime = ssTools::ss_datetime();
 	while (true)
 	{
 		while (true)
@@ -247,7 +262,7 @@ void *ssLogger::LogThread(void *arg)
 			if (s <= 0)
 			{
 #if defined _WIN32
-				Sleep(50 * 1000);
+				Sleep(50);
 #else
 				usleep(50 * 1000);
 #endif

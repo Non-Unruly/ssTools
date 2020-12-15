@@ -1,3 +1,11 @@
+//@ Project : ssTools
+//@ Copyright : Non-unruly (Git)
+//@ Git: https://github.com/Non-Unruly/ssTools
+//@
+//@ Launch Date : 2020-06-27
+//@ Update: 2020-12-15
+
+
 #include "ssTools.h"
 
 std::vector<std::string> ssTools::ss_split(std::string str, std::string key)
@@ -115,7 +123,7 @@ bool ssTools::ss_makePath(const char * path)
 #if defined _WIN32 || defined _WIN64
 	//windows 平台
 	char *cmd = new char[32 + strlen(path)];
-	sprintf(cmd, "md %s\0", cmd);
+	sprintf(cmd, "md %s\0", path);
 	system(cmd);
 	delete[]cmd;
 
