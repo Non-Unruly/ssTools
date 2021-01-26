@@ -1,17 +1,19 @@
 #include <cstdio>
-#include "../ssTools.h"
-#include "../ssLogger.h"
+#include "../ssFormatPlus.h"
 #include <iostream>
-#include <Windows.h>
+#include <vector>
+#include <list>
+#include <string>
 
 int main()
 {
-	bool isInit = ssLoggerOpen("d:\\shb", 1 * 1024 * 104, ssLogger::ALL);
-	
-	while (true)
-	{
-		ssloggerDebug("hello ssTools logger!");
-		Sleep(500);
-	}
-    return 0;
+	std::vector<int> nums = { 1,2,3,4,5 };
+	std::vector<std::string> stdstrs = {"hbshi","hbshi3","weiwang70"};
+	std::vector<const char*> strs = { "what","do","I","want" };
+
+	printf("%s\n", ssTools::ssFormatVecInt(nums).c_str());
+	printf("%s\n", ssTools::ssFormatVecStdStr(stdstrs).c_str());
+	printf("%s\n", ssTools::ssFormatVecStr(strs).c_str());
+	system("pause");
+	return 0;
 }

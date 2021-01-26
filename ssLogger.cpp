@@ -236,7 +236,7 @@ std::string ssLogger::function_line(const char *src, const char *function, int l
 	if (strlen(function) > 0 || line > 0)
 	{
 		char fl[512];
-		sprintf(fl, "[%s] %s:%d | \0", src, function, line);
+		sprintf(fl, "[%s][%s:%d]\0", src, function, line);
 		strfl = fl;
 	}
 	return strfl;
