@@ -1,19 +1,16 @@
 #include <cstdio>
-#include "../ssFormatPlus.h"
 #include <iostream>
-#include <vector>
-#include <list>
-#include <string>
+#include "../ssLogger.h"
 
 int main()
 {
-	std::vector<int> nums = { 1,2,3,4,5 };
-	std::vector<std::string> stdstrs = {"hbshi","hbshi3","weiwang70"};
-	std::vector<const char*> strs = { "what","do","I","want" };
+	ssLoggerOpen("./example", 1 * 1024 * 1024, 2048, ssLogger::LEVEL_ALL, ssLogger::TAG_ALL);
 
-	printf("%s\n", ssTools::ssFormatVecInt(nums).c_str());
-	printf("%s\n", ssTools::ssFormatVecStdStr(stdstrs).c_str());
-	printf("%s\n", ssTools::ssFormatVecStr(strs).c_str());
+	for (int i = 0; i < 10; i++)
+	{
+		ssloggerDebug("log %d %s", i, "shb");
+	}
+
 	system("pause");
 	return 0;
 }
