@@ -17,10 +17,13 @@
 
 namespace ssTools
 {
+	// %vd
 	std::string ssFormatVecInt(std::vector<int> _container);
 
+	// %vs
 	std::string ssFormatVecStdStr(std::vector<std::string> _container);
-
+	
+	// %vstds
 	std::string ssFormatVecStr(std::vector<const char*> _container);
 }
 
