@@ -9,9 +9,9 @@
 #define _SS_LOGGER_H_
 
 #if defined _WIN32
-	#ifndef _CRT_SECURE_NO_WARNINGS
-	#define _CRT_SECURE_NO_WARNINGS
-	#endif
+#ifndef _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
+#endif
 #endif
 
 #include <iostream>
@@ -75,14 +75,14 @@ public:
 
 	enum LOG_TAG
 	{
-		LOGTAG_TIME =	0, //time
-		LOGTAG_LEVEL =	1, //level tag [DBG][INFO][WAR][ERR][DIS]
-		LOGTAG_FILE =	2, //the source file name
-		LOGTAG_FUNC =	3, //function
-		LOGTAG_LINE = 4, //line number
-		LOGTAG_ALL = 5,
+		LOGTAG_TIME = TAG_TIME, //time
+		LOGTAG_LEVEL = TAG_LEVEL, //level tag [DBG][INFO][WAR][ERR][DIS]
+		LOGTAG_FILE = TAG_FILE, //the source file name
+		LOGTAG_FUNC = TAG_FUNC, //function
+		LOGTAG_LINE = TAG_LINE, //line number
+		LOGTAG_ALL = TAG_ALL,
 	};
-	
+
 	//The option of the log tag, 0-TIME 1-LEVEL 2-FILE 3-FUNC 4-LINE 5-ALL
 	static bool m_isTag[5];
 
@@ -94,7 +94,8 @@ public:
 	//maxLen 单条日志最大长度 the maximum length of a log string
 	//level 日志精准等级[0~5] 等级越高，输出的日志越精确，日志量越少 the level of log , high level and fewer log and more accurate log
 	//tag 日志输出的前缀字段，时间（精确至毫秒）、日志等级、触发文件、触发函数、触发行号 the log prefix about time(ms),level,file,func,line number
-	static bool init(const char *_logPath, size_t _fileSize = 1 * 1024 * 1024, size_t _maxLen = 2048, LOG_LEVEL _level = LEVEL_ALL, LOG_TAG _tag = TAG_ALL);
+	//sync 同步日志开关 the sync/async mode of log , default is async(false)
+	static bool init(const char *_logPath, size_t _fileSize = 1 * 1024 * 1024, size_t _maxLen = 2048, LOG_LEVEL _level = LEVEL_ALL, LOG_TAG _tag = LOGTAG_ALL, bool sync = false);
 
 
 	//添加日志字符串
@@ -118,13 +119,16 @@ public:
 		{
 			isPrint = false;
 		};
-		_SSLOG_INFO_T_(std::string timetick, std::string logType, std::string file, std::string function, std::string line, std::string logText, bool print = true)
+		_SSLOG_INFO_T_(std::string _timetick, std::string _logType, std::string _file, std::string _function, int _line, std::string _logText, bool print = true)
 		{
-			time = timetick;
-			type = logType;
-			log = logText;
+			time = _timetick;
+			file = _file;
+			function = _function;
+			line = _line;
+			type = _logType;
+			log = _logText;
 			isPrint = print;
-		}
+		};
 	} ssLog_info_t;
 
 
@@ -132,6 +136,7 @@ private:
 	static FILE *m_f;
 	static std::string m_fileName;
 	static bool m_isInit;
+	static bool m_sync;
 	static size_t m_size;
 
 #if defined _WIN32
@@ -145,6 +150,7 @@ private:
 	static std::string ssFormat(const char *_format, va_list _vlist);
 	static std::string function_line(const char *_src, const char *_function, int _line);
 
+	static std::string show(ssLog_info_t info);
 #if defined _WIN32
 	static void m_LogThread();
 #else
