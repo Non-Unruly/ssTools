@@ -39,7 +39,7 @@
 
 #include "ssTools.h"
 
-#define ssLoggerOpen(_path,_file_size,_max_log_length,_level,_tag) ssLogger::init(_path,_file_size,_max_log_length,_level,_tag)
+#define ssLoggerOpen(_path,_file_size,_max_log_length,_level,_tag,_async) ssLogger::init(_path,_file_size,_max_log_length,_level,_tag,_async)
 
 #define ssloggerDebug(...) ssLogger::output(true, 1, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define ssloggerInfo(...) ssLogger::output(true, 2, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
