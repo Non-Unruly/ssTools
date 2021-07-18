@@ -13,27 +13,29 @@
 #include <string>
 #include <typeinfo>
 
+#include "ssException.h"
+
 template <class T>
 class ssBuffer
 {
 public:
-    ssBuffer(size_t _bufferLength = 1 * 1024 * 1024);
+    ssBuffer(size_t bufferLength = 1 * 1024 * 1024);
 
     ~ssBuffer();
 
     // Read data from buffer
-    //_data : the container of data;
-    //_length : the length of data to read;
+    // data : the container of data;
+    // length : the length of data to read;
     //PS : if valid buffer area's length less than _length , _data can't get data and _length is 0 , return OVER_READ
     //如果需要读取的长度，超出缓冲区有效数据长度，那会返回OVER_READ,_data=NULL，_length=0
-    int ReadData(T *_data, size_t _length);
+    int ReadData(T *data, size_t length);
 
     // Write data to buffer
-    //_data : the data to be written
-    //_length : the length of data to write
+    // data : the data to be written
+    // length : the length of data to write
     //PS : if data to be written will overwrite the unused buffer area , the data will be written correctly , but return OVER_WRITE
     //如果需要写入的数据长度，会覆盖未读取的区域，那么数据会被正常写入（未读区被覆盖），但是会返回OVER_WRITE作为警告
-    int WriteData(T *_data, size_t _length);
+    int WriteData(T *data, size_t length);
 
     // Reset buffer;
     int Reset();
@@ -64,20 +66,30 @@ private:
 template <class T>
 ssBuffer<T>::ssBuffer(size_t _bufferLength)
 {
-    if (_bufferLength <= 0)
-        throw "illegal param";
+	if (_bufferLength <= 0)
+	{
+		ssException err(-1, "illegall param");
+		throw err;
+	}
 
-    m_capcity = _bufferLength;
-    m_buffer = new T[m_capcity];
-    if (typeid(T) == typeid(char) || typeid(T) == typeid(short) ||
-        typeid(T) == typeid(int) || typeid(T) == typeid(long) ||
-        typeid(T) == typeid(unsigned int) ||
-        typeid(T) == typeid(unsigned short) ||
-        typeid(T) == typeid(unsigned long))
-    {
-        for (int i = 0; i < m_capcity; i++)
-            m_buffer[i] = 0;
-    }
+	m_capcity = _bufferLength;
+	m_buffer = new T[m_capcity];
+	if (typeid(T) == typeid(char) || typeid(T) == typeid(short) ||
+		typeid(T) == typeid(int) || typeid(T) == typeid(long) ||
+		typeid(T) == typeid(unsigned int) ||
+		typeid(T) == typeid(unsigned short) ||
+		typeid(T) == typeid(unsigned long))
+	{
+		for (int i = 0; i < m_capcity; i++)
+		{
+			m_buffer[i] = 0;
+		}
+	}
+	else
+	{
+		ssException err(-1, "not support data type");
+		throw err;
+	}
     m_isInit = true;
     m_pos_write = 0;
     m_pos_read = 0;
@@ -171,8 +183,10 @@ int ssBuffer<T>::WriteData(T *_data, size_t _length)
     else
         distance = m_capcity - m_pos_write + m_pos_read;
     m_pos_write = pos;
-    if (_length > distance)
-        return OVER_WRITE;
+	if (_length > distance)
+	{
+		return OVER_WRITE;
+	}
     return YES;
 }
 
