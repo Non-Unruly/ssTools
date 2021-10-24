@@ -139,7 +139,9 @@ void ssLogger::output(bool print, int level, const char *srcName, const char *fu
 		}
 		else
 		{
-			show(t);
+			std::string txt = show(t);
+			fwrite(txt.c_str(), 1, txt.length(), m_f);
+			fflush(m_f);
 		}
 		ss_unlock(m_qMtx);
 	}
