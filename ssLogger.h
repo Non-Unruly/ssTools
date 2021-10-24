@@ -39,7 +39,7 @@
 
 #include "ssTools.h"
 
-#define ssLoggerOpen(_path,_file_size,_max_log_length,_level,_tag,_async) ssLogger::init(_path,_file_size,_max_log_length,_level,_tag,_async)
+#define ssLoggerOpen(_path,_file_size,_max_log_length,_level,_tag,_sync) ssLogger::init(_path,_file_size,_max_log_length,_level,_tag,_sync)
 
 #define ssloggerDebug(...) ssLogger::output(true, 1, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define ssloggerInfo(...) ssLogger::output(true, 2, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
@@ -95,7 +95,7 @@ public:
 	//level 日志精准等级[0~5] 等级越高，输出的日志越精确，日志量越少 the level of log , high level and fewer log and more accurate log
 	//tag 日志输出的前缀字段，时间（精确至毫秒）、日志等级、触发文件、触发函数、触发行号 the log prefix about time(ms),level,file,func,line number
 	//sync 同步日志开关 the sync/async mode of log , default is async(false)
-	static bool init(const char *_logPath, size_t _fileSize = 1 * 1024 * 1024, size_t _maxLen = 2048, LOG_LEVEL _level = LEVEL_ALL, LOG_TAG _tag = LOGTAG_ALL, bool sync = false);
+	static bool init(const char *_logPath, size_t _fileSize = 1 * 1024 * 1024, size_t _maxLen = 2048, LOG_LEVEL _level = LEVEL_ALL, LOG_TAG _tag = LOGTAG_ALL, bool sync = true);
 
 
 	//添加日志字符串
