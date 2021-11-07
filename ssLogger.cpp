@@ -40,7 +40,7 @@ ssLogger::ssLogger()
 bool ssLogger::init(const char *_logPath, size_t _fileSize, size_t _maxLen, LOG_LEVEL _level, LOG_TAG _tag, bool sync)
 {
 	std::vector<std::string> pathStep = ssTools::ss_split(_logPath, SEPARATOR);
-	pathStep.erase(--pathStep.end());
+	// pathStep.erase(--pathStep.end());
 
 	std::string dir = ssTools::ss_keyJoint(pathStep, SEPARATOR);
 	if (strlen(_logPath) > 0 && std::string(1, _logPath[0]) == SEPARATOR)
@@ -69,7 +69,7 @@ bool ssLogger::init(const char *_logPath, size_t _fileSize, size_t _maxLen, LOG_
 	m_f = fopen(m_fileName.c_str(), "at+");
 	if (m_f == NULL)
 	{
-		throw("ssLogger create file error!");
+		printf("ssLogger create file error!\n");
 		return false;
 	}
 
@@ -82,9 +82,9 @@ bool ssLogger::init(const char *_logPath, size_t _fileSize, size_t _maxLen, LOG_
 		m_isInit = true;
 #else
 		pthread_t thd_t;
-		int res = pthread_create(&thd_t, NULL, &LogThread, NULL);
+		int res = pthread_create(&thd_t, NULL, &m_LogThread, NULL);
 		if (res == 0)
-			isInit = true;
+			m_isInit = true;
 #endif
 	}
 	else
@@ -98,7 +98,7 @@ void ssLogger::output(bool print, int level, const char *srcName, const char *fu
 {
 	if (!m_isInit)
 	{
-		throw("ssLogger no initialize!!!");
+		//throw("ssLogger no initialize!!!");
 		return;
 	}
 	std::string flag;
@@ -125,7 +125,7 @@ void ssLogger::output(bool print, int level, const char *srcName, const char *fu
 	}
 	va_list vlst;
 	va_start(vlst, format);
-	//std::string log = "[" + ssTools::ss_datetime() + "]" + flag + function_line(srcName, functionName, line) + ssFormat(format, vlst);
+
 	ssLog_info_t t(ssTools::ss_datetime(), flag, std::string(srcName), std::string(functionName), line, ssFormat(format, vlst), print);
 	va_end(vlst);
 
