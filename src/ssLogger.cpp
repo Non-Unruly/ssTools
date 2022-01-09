@@ -20,11 +20,7 @@ pthread_mutex_t ssLogger::m_qMtx;
 std::queue<ssLogger::ssLog_info_t> ssLogger::m_logQueue;
 std::set<std::string> ssLogger::m_keys;
 
-std::string ssLogger::m_logNamePrefix;
-size_t ssLogger::m_logFileSize = 1 * 1024 * 1024;
-
 bool ssLogger::m_isInit = false;
-bool ssLogger::m_isTag[5] = { 0 };
 bool ssLogger::m_sync = false;
 
 ssLogger::LOG_LEVEL ssLogger::m_logLevel = ssLogger::LEVEL_ALL;
@@ -37,17 +33,12 @@ ssLogger::ssLogger()
 {
 }
 
-bool ssLogger::init(const char *_logPath, size_t _fileSize, size_t _maxLen, LOG_LEVEL _level, LOG_TAG _tag, bool sync)
-{
-	std::vector<std::string> pathStep = ssTools::ss_split(_logPath, SEPARATOR);
-	// pathStep.erase(--pathStep.end());
 
-	std::string dir = ssTools::ss_keyJoint(pathStep, SEPARATOR);
-	if (strlen(_logPath) > 0 && std::string(1, _logPath[0]) == SEPARATOR)
-	{
-		dir = SEPARATOR + dir;
-	}
-	ssTools::ss_makePath(dir.c_str());
+bool ssLogger::init(const char *_logPath,const char *_name,size_t _maxLen, LOG_LEVEL _level,bool sync)
+{
+	// try to create log's dir
+	ssTools::ss_makePath(_logPath);
+	
 
 	m_isInit = false;
 	m_logLevel = _level;
@@ -55,17 +46,8 @@ bool ssLogger::init(const char *_logPath, size_t _fileSize, size_t _maxLen, LOG_
 	m_sync = sync;
 
 
-	int tag = _tag;
-	for (int i = 0; i < 5; i++)
-	{
-		m_isTag[i] = tag & 1;
-		tag = tag >> 1;
-	}
-
-	m_logNamePrefix = _logPath;
-	m_logFileSize = _fileSize;
-
-	m_fileName = m_logNamePrefix + ".log";
+	m_fileName = std::string(_logPath) + "/" + std::string(_name) + ssTools::ss_datetime_simple();
+	printf("ssTools create log file: %s\n", m_fileName.c_str());
 	m_f = fopen(m_fileName.c_str(), "at+");
 	if (m_f == NULL)
 	{
@@ -76,6 +58,7 @@ bool ssLogger::init(const char *_logPath, size_t _fileSize, size_t _maxLen, LOG_
 
 	if (!m_sync)
 	{
+		//async mode 异步模式
 #if defined _WIN32
 		std::thread thd(m_LogThread);
 		thd.detach();
@@ -89,6 +72,7 @@ bool ssLogger::init(const char *_logPath, size_t _fileSize, size_t _maxLen, LOG_
 	}
 	else
 	{
+		//sync mode 异步模式
 		m_isInit = true;
 	}
 	return m_isInit;
@@ -135,11 +119,13 @@ void ssLogger::output(bool print, int level, const char *srcName, const char *fu
 
 		if (!m_sync)
 		{
+			// async mode
 			m_logQueue.push(t);
 		}
 		else
 		{
-			std::string txt = show(t);
+			// sync mode
+			std::string txt = show_text(t);
 			fwrite(txt.c_str(), 1, txt.length(), m_f);
 			fflush(m_f);
 		}
@@ -171,21 +157,16 @@ std::string ssLogger::function_line(const char *src, const char *function, int l
 	return strfl;
 }
 
-std::string ssLogger::show(ssLog_info_t info)
+std::string ssLogger::show_text(ssLog_info_t info)
 {
 	std::string log;
-	if (m_isTag[TAG_TIME])
-		log += "[" + info.time + "]";
-	if (m_isTag[TAG_LEVEL])
-		log += info.type;
-	if (m_isTag[TAG_FILE] || m_isTag[TAG_LINE])
-	{
-		char ll[16];
-		sprintf(ll, "%d\0", info.line);
-		log += "[" + info.file + ":" + std::string(ll) + "]";
-	}
-	if (m_isTag[TAG_FUNC])
-		log += "[" + info.function + "]";
+
+	log += "[" + info.time + "]";
+	log += info.type;
+
+	char ll[16];
+	sprintf(ll, "%d\0", info.line);
+	log += "[" + info.file + " | " + info.function + ":" + std::string(ll) + "] ";
 
 	log += info.log;
 	log += "\n";
@@ -203,7 +184,6 @@ void ssLogger::m_LogThread()
 void *ssLogger::m_LogThread(void *_arg)
 #endif
 {
-	size_t sum = 0;
 	std::string logTime = ssTools::ss_datetime();
 	while (true)
 	{
@@ -229,27 +209,9 @@ void *ssLogger::m_LogThread(void *_arg)
 		ssLog_info_t log_t = m_logQueue.front();
 		m_logQueue.pop();
 		ss_unlock(m_qMtx);
-		std::string txt = show(log_t);
+		std::string txt = show_text(log_t);
 		fwrite(txt.c_str(), 1, txt.length(), m_f);
 		fflush(m_f);
-		sum += txt.length();
-
-		if (sum >= m_logFileSize)
-		{
-			fclose(m_f);
-			std::string newname = m_logNamePrefix + "-" + logTime + ".log";
-			rename(m_fileName.c_str(), newname.c_str());
-			m_f = NULL;
-			sum = 0;
-			logTime = ssTools::ss_datetime();
-			m_fileName = m_logNamePrefix + ".log";
-			m_f = fopen(m_fileName.c_str(), "at+");
-			if (m_f == NULL)
-			{
-				throw("ssLogger create file error!");
-				goto END;
-			}
-		}
 	}
 END:
 #if defined _WIN32

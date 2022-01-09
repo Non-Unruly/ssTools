@@ -6,10 +6,6 @@ ssException::ssException()
 	msg = "no error";
 }
 
-ssException::ssException(int code, const char * msg)
-{
-}
-
 ssException::~ssException()
 {
 }

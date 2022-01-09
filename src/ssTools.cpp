@@ -93,7 +93,7 @@ std::string ssTools::ss_datetime()
 		tm.wSecond,
 		tm.wMilliseconds
 	);
-	
+
 #else
 	//Linux 平台
 	struct timeval tv;
@@ -111,7 +111,44 @@ std::string ssTools::ss_datetime()
 			tv.tv_usec / 1000);
 	}
 #endif // WIN32
-	
+
+	return std::string(result);
+}
+
+std::string ssTools::ss_datetime_simple()
+{
+	char result[1024];
+	memset(result, 0, 1024);
+
+#if defined _WIN32 || defined _WIN64
+	//windows 平台
+	SYSTEMTIME tm;
+	GetLocalTime(&tm);
+	sprintf(result, "%04d%02d%02d%02d%02d%02d",
+		tm.wYear,
+		tm.wMonth,
+		tm.wDay,
+		tm.wHour,
+		tm.wMinute,
+		tm.wSecond
+	);
+
+#else
+	//Linux 平台
+	struct timeval tv;
+	gettimeofday(&tv, 0);
+	struct tm* pTempTm = localtime(&tv.tv_sec);
+	if (pTempTm != NULL)
+	{
+		sprintf(result, "%04d%02d%02d%02d:%02d:%02d",
+			pTempTm->tm_year + 1900,
+			pTempTm->tm_mon + 1,
+			pTempTm->tm_mday,
+			pTempTm->tm_hour,
+			pTempTm->tm_min,
+			pTempTm->tm_sec);
+	}
+#endif // WIN32
 	return std::string(result);
 }
 
@@ -119,34 +156,23 @@ bool ssTools::ss_makePath(const char * path)
 {
 	if (strlen(path) <= 0)
 		return false;
+	char *cmd = new char[32 + strlen(path)];
+	std::string dir;
 
 #if defined _WIN32 || defined _WIN64
 	//windows 平台
-	char *cmd = new char[32 + strlen(path)];
-	sprintf(cmd, "md %s\0", path);
-	system(cmd);
-	delete[]cmd;
-
+	for (int i = 0; i < strlen(path); i++)
+		dir += path[i] == '/' ? '\\' : path[i];
+	sprintf(cmd, "md %s\0", dir.c_str());
 #else
 	//Linux 平台
-	std::vector<std::string> elems = ss_split(path, "/");
-	if (path[0] == '/')
-		elems[0] = '/' + elems[0];//如果从根目录开始，那么把第一个目录名前的'/'补上
-
-	std::string fullPath;
-	for (int i = 0; i < elems.size(); i++)
-	{
-		fullPath = fullPath + elems[i] + "/";
-		int res = mkdir(fullPath.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
-		if (res != 0)
-		{
-			if (errno == 17)
-				continue;//17错误，当前目录已存在，继续创建下一层
-			std::cout << "mkdir error: " << errno << " " << fullPath << std::endl;
-			return false;
-		}
-	}
+	for (int i = 0; i < strlen(path); i++)
+		dir += path[i] == '\\' ? '/' : path[i];
+	sprintf(cmd, "mkdir -vp %s\0", dir.c_str());
 #endif
+
+	system(cmd);
+	delete[]cmd;
 	return true;
 }
 
