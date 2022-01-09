@@ -1,4 +1,4 @@
-//@ Project : ssTools
+﻿//@ Project : ssTools
 //@ Copyright : Non-unruly (Git)
 //@ Git: https://github.com/Non-Unruly/ssTools
 //@
@@ -58,7 +58,7 @@ bool ssLogger::init(const char *_logPath,const char *_name,size_t _maxLen, LOG_L
 
 	if (!m_sync)
 	{
-		//async mode �첽ģʽ
+		//async mode 异步模式
 #if defined _WIN32
 		std::thread thd(m_LogThread);
 		thd.detach();
@@ -72,7 +72,7 @@ bool ssLogger::init(const char *_logPath,const char *_name,size_t _maxLen, LOG_L
 	}
 	else
 	{
-		//sync mode �첽ģʽ
+		//sync mode 异步模式
 		m_isInit = true;
 	}
 	return m_isInit;
