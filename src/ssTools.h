@@ -50,6 +50,9 @@ namespace ssTools
 	//format: "yyyy-MM-dd hh:mm:ss:ms
 	std::string ss_datetime();
 
+	//格式：年月日时分秒
+	std::string ss_datetime_simple();
+
 	//递归创建目录 recursive make path
 	bool ss_makePath(const char *path);
 
