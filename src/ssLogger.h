@@ -3,7 +3,6 @@
 //@ Git: https://github.com/Non-Unruly/ssTools
 //@
 //@ Launch Date : 2020-06-27
-//@ Update: 2020-12-15
 
 #ifndef _SS_LOGGER_H_
 #define _SS_LOGGER_H_
@@ -23,7 +22,6 @@
 #include <iterator>
 #include <queue>
 #include <cstdio>
-
 #if defined _WIN32
 
 #include <thread>
@@ -39,7 +37,7 @@
 
 #include "ssTools.h"
 
-#define ssLoggerOpen(_path,_log_name,_max_log_length,_level,_sync) ssLogger::init(_path,_log_name,_max_log_length,_level,_sync)
+#define ssLoggerOpen(_path,_log_name,_level,_sync) ssLogger::init(_path,_log_name,_level,_sync)
 
 #define ssloggerDebug(...) ssLogger::output(true, 1, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define ssloggerInfo(...) ssLogger::output(true, 2, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
@@ -82,7 +80,7 @@ public:
 	//level 日志精准等级[0~5] 等级越高，输出的日志越精确，日志量越少 the level of log , high level and fewer log and more accurate log
 	//tag 日志输出的前缀字段，时间（精确至毫秒）、日志等级、触发文件、触发函数、触发行号 the log prefix about time(ms),level,file,func,line number
 	//sync 同步日志开关 the sync/async mode of log , default is async(false)
-	static bool init(const char *_logPath, const char *_name, size_t _maxLen = 5 * 1024 * 1024, LOG_LEVEL _level = LEVEL_ALL, bool sync = true);
+	static bool init(const char *_logPath, const char *_name, LOG_LEVEL _level = LEVEL_ALL, bool sync = true);
 
 
 	//添加日志字符串
@@ -144,7 +142,6 @@ private:
 	static void *m_LogThread(void *arg);
 #endif
 	static LOG_LEVEL m_logLevel;
-	static size_t m_maxLen;
 
 #if defined _WIN32
 	static void ss_lock(std::mutex &_mtx);

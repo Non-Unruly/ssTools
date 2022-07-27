@@ -3,7 +3,6 @@
 //@ Git: https://github.com/Non-Unruly/ssTools
 //@
 //@ Launch Date : 2020-06-27
-//@ Update: 2021-01-24
 
 #ifndef _SS_FORMATPLUS_H_
 #define _SS_FORMATPLUS_H_

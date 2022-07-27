@@ -3,7 +3,6 @@
 //@ Git: https://github.com/Non-Unruly/ssTools
 //@
 //@ Launch Date : 2020-06-27
-//@ Update: 2021-04-15
 
 #include "ssLogger.h"
 
@@ -24,8 +23,6 @@ bool ssLogger::m_isInit = false;
 bool ssLogger::m_sync = false;
 
 ssLogger::LOG_LEVEL ssLogger::m_logLevel = ssLogger::LEVEL_ALL;
-
-size_t ssLogger::m_maxLen = 2048;
 FILE *ssLogger::m_f = NULL;
 std::string ssLogger::m_fileName = "";
 
@@ -34,7 +31,7 @@ ssLogger::ssLogger()
 }
 
 
-bool ssLogger::init(const char *_logPath,const char *_name,size_t _maxLen, LOG_LEVEL _level,bool sync)
+bool ssLogger::init(const char *_logPath,const char *_name, LOG_LEVEL _level,bool sync)
 {
 	// try to create log's dir
 	ssTools::ss_makePath(_logPath);
@@ -42,11 +39,10 @@ bool ssLogger::init(const char *_logPath,const char *_name,size_t _maxLen, LOG_L
 
 	m_isInit = false;
 	m_logLevel = _level;
-	m_maxLen = _maxLen;
 	m_sync = sync;
 
 
-	m_fileName = std::string(_logPath) + "/" + std::string(_name) + ssTools::ss_datetime_simple();
+	m_fileName = std::string(_logPath) + "/" + std::string(_name) + "-" + ssTools::ss_datetime_simple("-") + ".log";
 	printf("ssTools create log file: %s\n", m_fileName.c_str());
 	m_f = fopen(m_fileName.c_str(), "at+");
 	if (m_f == NULL)
@@ -107,9 +103,9 @@ void ssLogger::output(bool print, int level, const char *srcName, const char *fu
 		flag = "[DBG]";
 		break;
 	}
+	
 	va_list vlst;
 	va_start(vlst, format);
-
 	ssLog_info_t t(ssTools::ss_datetime(), flag, std::string(srcName), std::string(functionName), line, ssFormat(format, vlst), print);
 	va_end(vlst);
 
@@ -137,8 +133,9 @@ void ssLogger::output(bool print, int level, const char *srcName, const char *fu
 
 std::string ssLogger::ssFormat(const char *format, va_list vlist)
 {
-	char *str = new char[m_maxLen];
-	memset(str, 0, m_maxLen);
+	size_t length = _vscprintf(format, vlist) + 1;
+	char *str = new char[length];
+	memset(str, 0, length);
 	vsprintf(str, format, vlist);
 	std::string res = std::string(str);
 	delete[]str;

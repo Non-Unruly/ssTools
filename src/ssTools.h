@@ -3,7 +3,6 @@
 //@ Git: https://github.com/Non-Unruly/ssTools
 //@
 //@ Launch Date : 2020-06-27
-//@ Update: 2020-12-15
 
 
 #ifndef _SSTOOLS_H_
@@ -51,7 +50,7 @@ namespace ssTools
 	std::string ss_datetime();
 
 	//格式：年月日时分秒
-	std::string ss_datetime_simple();
+	std::string ss_datetime_simple(const char *_separator = "");
 
 	//递归创建目录 recursive make path
 	bool ss_makePath(const char *path);

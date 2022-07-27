@@ -33,3 +33,11 @@
 .vscode
 
 cmake-*
+
+*.vcxproj*
+*.log
+x64
+Debug
+build
+.vs
+.idea
