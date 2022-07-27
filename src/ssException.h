@@ -3,7 +3,6 @@
 //@ Git: https://github.com/Non-Unruly/ssTools
 //@
 //@ Launch Date : 2020-06-27
-//@ Update: 2021-07-10
 
 #ifndef _SS_EXCEPTION_H_
 #define _SS_EXCEPTION_H_

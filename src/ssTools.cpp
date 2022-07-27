@@ -3,7 +3,6 @@
 //@ Git: https://github.com/Non-Unruly/ssTools
 //@
 //@ Launch Date : 2020-06-27
-//@ Update: 2020-12-15
 
 
 #include "ssTools.h"
@@ -115,16 +114,17 @@ std::string ssTools::ss_datetime()
 	return std::string(result);
 }
 
-std::string ssTools::ss_datetime_simple()
+std::string ssTools::ss_datetime_simple(const char* _separator)
 {
+	std::string separator(_separator);
+	std::string fmt = "%04d" + separator + "%02d" + separator + "%02d" + separator + "%02d" + separator + "%02d" + separator + "%02d";
 	char result[1024];
 	memset(result, 0, 1024);
-
 #if defined _WIN32 || defined _WIN64
 	//windows 平台
 	SYSTEMTIME tm;
 	GetLocalTime(&tm);
-	sprintf(result, "%04d%02d%02d%02d%02d%02d",
+	sprintf(result, fmt.c_str(),
 		tm.wYear,
 		tm.wMonth,
 		tm.wDay,
@@ -140,7 +140,7 @@ std::string ssTools::ss_datetime_simple()
 	struct tm* pTempTm = localtime(&tv.tv_sec);
 	if (pTempTm != NULL)
 	{
-		sprintf(result, "%04d%02d%02d%02d%02d%02d",
+		sprintf(result, fmt.c_str();
 			pTempTm->tm_year + 1900,
 			pTempTm->tm_mon + 1,
 			pTempTm->tm_mday,
