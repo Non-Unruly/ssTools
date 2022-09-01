@@ -30,17 +30,14 @@ ssLogger::ssLogger()
 {
 }
 
-
-bool ssLogger::init(const char *_logPath,const char *_name, LOG_LEVEL _level,bool sync)
+bool ssLogger::init(const char *_logPath, const char *_name, LOG_LEVEL _level, bool sync)
 {
 	// try to create log's dir
 	ssTools::ss_makePath(_logPath);
-	
 
 	m_isInit = false;
 	m_logLevel = _level;
 	m_sync = sync;
-
 
 	m_fileName = std::string(_logPath) + "/" + std::string(_name) + "-" + ssTools::ss_datetime_simple("-") + ".log";
 	printf("ssTools create log file: %s\n", m_fileName.c_str());
@@ -51,10 +48,9 @@ bool ssLogger::init(const char *_logPath,const char *_name, LOG_LEVEL _level,boo
 		return false;
 	}
 
-
 	if (!m_sync)
 	{
-		//async mode 异步模式
+		// async mode 异步模式
 #if defined _WIN32
 		std::thread thd(m_LogThread);
 		thd.detach();
@@ -68,7 +64,7 @@ bool ssLogger::init(const char *_logPath,const char *_name, LOG_LEVEL _level,boo
 	}
 	else
 	{
-		//sync mode 异步模式
+		// sync mode 异步模式
 		m_isInit = true;
 	}
 	return m_isInit;
@@ -78,7 +74,7 @@ void ssLogger::output(bool print, int level, const char *srcName, const char *fu
 {
 	if (!m_isInit)
 	{
-		//throw("ssLogger no initialize!!!");
+		// throw("ssLogger no initialize!!!");
 		return;
 	}
 	std::string flag;
@@ -103,10 +99,15 @@ void ssLogger::output(bool print, int level, const char *srcName, const char *fu
 		flag = "[DBG]";
 		break;
 	}
-	
+
+	va_list args;
+	va_start(args, format);
+	int logLength = vsnprintf(nullptr, 0, format, args) + 1;
+	va_end(args);
+
 	va_list vlst;
 	va_start(vlst, format);
-	ssLog_info_t t(ssTools::ss_datetime(), flag, std::string(srcName), std::string(functionName), line, ssFormat(format, vlst), print);
+	ssLog_info_t t(ssTools::ss_datetime(), flag, std::string(srcName), std::string(functionName), line, ssFormat(logLength, format, vlst), print);
 	va_end(vlst);
 
 	if (level >= m_logLevel)
@@ -131,14 +132,13 @@ void ssLogger::output(bool print, int level, const char *srcName, const char *fu
 	return;
 }
 
-std::string ssLogger::ssFormat(const char *format, va_list vlist)
+std::string ssLogger::ssFormat(int length, const char *format, va_list vlist)
 {
-	size_t length = _vscprintf(format, vlist) + 1;
 	char *str = new char[length];
 	memset(str, 0, length);
 	vsprintf(str, format, vlist);
 	std::string res = std::string(str);
-	delete[]str;
+	delete[] str;
 	return res;
 }
 

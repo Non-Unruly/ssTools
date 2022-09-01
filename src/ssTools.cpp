@@ -140,7 +140,7 @@ std::string ssTools::ss_datetime_simple(const char* _separator)
 	struct tm* pTempTm = localtime(&tv.tv_sec);
 	if (pTempTm != NULL)
 	{
-		sprintf(result, fmt.c_str();
+		sprintf(result, fmt.c_str(),
 			pTempTm->tm_year + 1900,
 			pTempTm->tm_mon + 1,
 			pTempTm->tm_mday,

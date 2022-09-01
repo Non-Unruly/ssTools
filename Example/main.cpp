@@ -2,8 +2,6 @@
 #include <iostream>
 #include "../src/ssLogger.h"
 
-#include "../src/ssLogger.h"
-
 int main()
 {
 	ssLoggerOpen("./log/demo", "app", ssLogger::LEVEL_ALL, false);
@@ -14,7 +12,7 @@ int main()
 	{
 		ssloggerDebug("%s", ssTools::ss_datetime().c_str());
 #ifndef _WIN32
-		usleep(3 * 1000);
+		usleep(3 * 1000 * 1000);
 #else
 		Sleep(3 * 1000);
 #endif
