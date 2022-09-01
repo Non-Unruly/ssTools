@@ -15,6 +15,7 @@
 
 #include <iostream>
 #include <stdarg.h>
+#include <stdio.h>
 #include <cstring>
 #include <string>
 #include <vector>
@@ -28,7 +29,7 @@
 #include <mutex>
 
 #else
-//Linux
+// Linux
 #include <pthread.h>
 #include <sys/time.h>
 #include <unistd.h>
@@ -37,7 +38,7 @@
 
 #include "ssTools.h"
 
-#define ssLoggerOpen(_path,_log_name,_level,_sync) ssLogger::init(_path,_log_name,_level,_sync)
+#define ssLoggerOpen(_path, _log_name, _level, _sync) ssLogger::init(_path, _log_name, _level, _sync)
 
 #define ssloggerDebug(...) ssLogger::output(true, 1, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define ssloggerInfo(...) ssLogger::output(true, 2, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
@@ -74,21 +75,20 @@ public:
 	ssLogger();
 
 	//日志模块初始化函数 log module initialize function
-	//logPath 日志目录 log file path (auto craete dir)
-	//name 日志文件名 log file's name
-	//maxLen 单条日志最大长度 one log record string's length
-	//level 日志精准等级[0~5] 等级越高，输出的日志越精确，日志量越少 the level of log , high level and fewer log and more accurate log
-	//tag 日志输出的前缀字段，时间（精确至毫秒）、日志等级、触发文件、触发函数、触发行号 the log prefix about time(ms),level,file,func,line number
-	//sync 同步日志开关 the sync/async mode of log , default is async(false)
+	// logPath 日志目录 log file path (auto craete dir)
+	// name 日志文件名 log file's name
+	// maxLen 单条日志最大长度 one log record string's length
+	// level 日志精准等级[0~5] 等级越高，输出的日志越精确，日志量越少 the level of log , high level and fewer log and more accurate log
+	// tag 日志输出的前缀字段，时间（精确至毫秒）、日志等级、触发文件、触发函数、触发行号 the log prefix about time(ms),level,file,func,line number
+	// sync 同步日志开关 the sync/async mode of log , default is async(false)
 	static bool init(const char *_logPath, const char *_name, LOG_LEVEL _level = LEVEL_ALL, bool sync = true);
 
-
 	//添加日志字符串
-	//print 是否输出到屏幕 whether the text is displayed on the screen
-	//type 日志类型映射为等级 log's type/level (enum LOG_LEVEL)
-	//functionName 当前所在函数的函数名 log's function name
-	//line 日志点行数 log's line number
-	//format 日志格式 format , support %d %ld %s %c %f %lf(%.8lf) %x(0x%02x)
+	// print 是否输出到屏幕 whether the text is displayed on the screen
+	// type 日志类型映射为等级 log's type/level (enum LOG_LEVEL)
+	// functionName 当前所在函数的函数名 log's function name
+	// line 日志点行数 log's line number
+	// format 日志格式 format , support %d %ld %s %c %f %lf(%.8lf) %x(0x%02x)
 	static void output(bool print, int type, const char *srcName, const char *functionName, int line, const char *format, ...);
 
 	typedef struct _SSLOG_INFO_T_
@@ -116,7 +116,6 @@ public:
 		};
 	} ssLog_info_t;
 
-
 private:
 	static FILE *m_f;
 	static std::string m_fileName;
@@ -132,7 +131,7 @@ private:
 	static std::queue<ssLogger::ssLog_info_t> m_logQueue;
 	static std::set<std::string> m_keys;
 
-	static std::string ssFormat(const char *_format, va_list _vlist);
+	static std::string ssFormat(int length, const char *_format, va_list _vlist);
 	static std::string function_line(const char *_src, const char *_function, int _line);
 
 	static std::string show_text(ssLog_info_t info);
