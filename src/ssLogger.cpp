@@ -77,6 +77,9 @@ void ssLogger::output(bool print, int level, const char *srcName, const char *fu
 		// throw("ssLogger no initialize!!!");
 		return;
 	}
+	
+	ss_lock(m_qMtx);
+
 	std::string flag;
 	switch (level)
 	{
@@ -112,8 +115,6 @@ void ssLogger::output(bool print, int level, const char *srcName, const char *fu
 
 	if (level >= m_logLevel)
 	{
-		ss_lock(m_qMtx);
-
 		if (!m_sync)
 		{
 			// async mode
@@ -126,8 +127,9 @@ void ssLogger::output(bool print, int level, const char *srcName, const char *fu
 			fwrite(txt.c_str(), 1, txt.length(), m_f);
 			fflush(m_f);
 		}
-		ss_unlock(m_qMtx);
 	}
+
+	ss_unlock(m_qMtx);
 
 	return;
 }
