@@ -190,9 +190,9 @@ void *ssLogger::m_LogThread(void *_arg)
 		{
 			ss_lock(m_qMtx);
 			int s = m_logQueue.size();
-			ss_unlock(m_qMtx);
 			if (s <= 0)
 			{
+				ss_unlock(m_qMtx);
 #if defined _WIN32
 				Sleep(50);
 #else
@@ -201,16 +201,15 @@ void *ssLogger::m_LogThread(void *_arg)
 			}
 			else
 			{
+				ssLog_info_t log_t = m_logQueue.front();
+				m_logQueue.pop();
+				ss_unlock(m_qMtx);
+				std::string txt = show_text(log_t);
+				fwrite(txt.c_str(), 1, txt.length(), m_f);
+				fflush(m_f);
 				break;
 			}
 		}
-		ss_lock(m_qMtx);
-		ssLog_info_t log_t = m_logQueue.front();
-		m_logQueue.pop();
-		ss_unlock(m_qMtx);
-		std::string txt = show_text(log_t);
-		fwrite(txt.c_str(), 1, txt.length(), m_f);
-		fflush(m_f);
 	}
 END:
 #if defined _WIN32
