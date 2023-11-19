@@ -1,4 +1,4 @@
-//@ Project : ssTools
+﻿//@ Project : ssTools
 //@ Copyright : Non-unruly (Git)
 //@ Git: https://github.com/Non-Unruly/ssTools
 //@

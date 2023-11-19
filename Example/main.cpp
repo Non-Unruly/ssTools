@@ -1,12 +1,14 @@
 #include <cstdio>
 #include <iostream>
-#include "../src/ssLogger.h"
+#include "../ssTools/ssLogger.h"
 
 int main()
 {
-	ssLoggerOpen("./log/demo", "app", ssLogger::LEVEL_ALL, false);
+	ssLoggerOpen("./log/example", "app", ssLogger::LEVEL_ALL, false);
+	ssLoggerFlags(PREFIX_TIME | PREFIX_FUNC | PREFIX_LINE | PREFIX_FILE);
 	ssloggerDebug("%08d", 19910915);
 	ssloggerInfo_np("%s", "ssTools");
+
 
 	while (true)
 	{
@@ -14,7 +16,7 @@ int main()
 #ifndef _WIN32
 		usleep(3 * 1000 * 1000);
 #else
-		Sleep(3 * 1000);
+		Sleep(300);
 #endif
 	}
 

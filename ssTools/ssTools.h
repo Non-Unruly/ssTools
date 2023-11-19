@@ -1,4 +1,4 @@
-//@ Project : ssTools
+﻿//@ Project : ssTools
 //@ Copyright : Non-unruly (Git)
 //@ Git: https://github.com/Non-Unruly/ssTools
 //@
@@ -50,16 +50,16 @@ namespace ssTools
 	std::string ss_datetime();
 
 	//格式：年月日时分秒
-	std::string ss_datetime_simple(const char *_separator = "");
+	std::string ss_datetime_simple(const char* _separator = "");
 
 	//递归创建目录 recursive make path
-	bool ss_makePath(const char *path);
+	bool ss_makePath(const char* path);
 
 	//十六进制字符串转十进制 Hex(char*) to Dec(short)
 	//Format: FF 0f a1
 	//Illegal Format: 0xff x10 9
-	short hex2i(const char *_hex);
-}
+	short hex2i(const char* _hex);
+};
 
 
 #endif
