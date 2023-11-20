@@ -33,8 +33,7 @@
 .vscode
 
 cmake-*
-
-*.vcxproj*
+*.vcxproj.user
 *.log
 x64
 Debug
