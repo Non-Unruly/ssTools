@@ -1,13 +1,22 @@
 #include <cstdio>
 #include <iostream>
 #include "../ssTools/ssLogger.h"
+#include "../sstools/ssNetwork.h"
+
+#ifdef _WIN32
+#include <Windows.h>
+#else
+#endif
 
 int main()
 {
+	
 	ssLoggerOpen("./log/example", "app", ssLogger::LEVEL_ALL, false);
 	ssLoggerFlags(PREFIX_TIME | PREFIX_FUNC | PREFIX_LINE | PREFIX_FILE);
 	ssloggerDebug("%08d", 19910915);
 	ssloggerInfo_np("%s", "ssTools");
+	auto ip = ssTools::GetLocalIPv4();
+	ssloggerInfo("local ip: %s", ip.c_str());
 
 
 	while (true)
