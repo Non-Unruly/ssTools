@@ -28,10 +28,10 @@
     <ClCompile Include="ssTools\ssLogger.cpp">
       <Filter>ssTools</Filter>
     </ClCompile>
-    <ClCompile Include="ssTools\ssMutex.cpp">
+    <ClCompile Include="ssTools\ssTools.cpp">
       <Filter>ssTools</Filter>
     </ClCompile>
-    <ClCompile Include="ssTools\ssTools.cpp">
+    <ClCompile Include="ssTools\ssNetwork.cpp">
       <Filter>ssTools</Filter>
     </ClCompile>
   </ItemGroup>
@@ -51,10 +51,10 @@
     <ClInclude Include="ssTools\ssLogger.h">
       <Filter>ssTools</Filter>
     </ClInclude>
-    <ClInclude Include="ssTools\ssMutex.h">
+    <ClInclude Include="ssTools\ssTools.h">
       <Filter>ssTools</Filter>
     </ClInclude>
-    <ClInclude Include="ssTools\ssTools.h">
+    <ClInclude Include="ssTools\ssNetwork.h">
       <Filter>ssTools</Filter>
     </ClInclude>
   </ItemGroup>
