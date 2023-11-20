@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+    <Filter Include="Example">
+      <UniqueIdentifier>{bb1b8b7a-1697-483c-a38b-a54b52d4dae4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ssTools">
+      <UniqueIdentifier>{8c2f0402-08fe-4508-9c27-05dae1467c3d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Example\main.cpp">
+      <Filter>Example</Filter>
+    </ClCompile>
+    <ClCompile Include="ssTools\ssException.cpp">
+      <Filter>ssTools</Filter>
+    </ClCompile>
+    <ClCompile Include="ssTools\ssFormatPlus.cpp">
+      <Filter>ssTools</Filter>
+    </ClCompile>
+    <ClCompile Include="ssTools\ssINIReader.cpp">
+      <Filter>ssTools</Filter>
+    </ClCompile>
+    <ClCompile Include="ssTools\ssLogger.cpp">
+      <Filter>ssTools</Filter>
+    </ClCompile>
+    <ClCompile Include="ssTools\ssMutex.cpp">
+      <Filter>ssTools</Filter>
+    </ClCompile>
+    <ClCompile Include="ssTools\ssTools.cpp">
+      <Filter>ssTools</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ssTools\ssBuffer.hpp">
+      <Filter>ssTools</Filter>
+    </ClInclude>
+    <ClInclude Include="ssTools\ssException.h">
+      <Filter>ssTools</Filter>
+    </ClInclude>
+    <ClInclude Include="ssTools\ssFormatPlus.h">
+      <Filter>ssTools</Filter>
+    </ClInclude>
+    <ClInclude Include="ssTools\ssINIReader.h">
+      <Filter>ssTools</Filter>
+    </ClInclude>
+    <ClInclude Include="ssTools\ssLogger.h">
+      <Filter>ssTools</Filter>
+    </ClInclude>
+    <ClInclude Include="ssTools\ssMutex.h">
+      <Filter>ssTools</Filter>
+    </ClInclude>
+    <ClInclude Include="ssTools\ssTools.h">
+      <Filter>ssTools</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
