@@ -3,31 +3,31 @@
 namespace ssTools
 {
 
-	std::string GetLocalIPv4(std::vector<std::string> &ip_lst)
+	std::vector<std::string> GetLocalIPv4(std::string &addrs)
 	{
 		std::string ip;
+		std::vector<std::string> ip_lst;
 #ifdef _WIN32
+		// Windows
 		WSADATA wsaData;
 		int iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
-		if (iResult != 0) {
+		if (iResult != 0)
+		{
 			printf("WSAStartup failed with error: %d\n", iResult);
 			return "";
 		}
-#endif
-		//»ñÈ¡±¾µØ¼ÆËã»úÖ÷»úÃû
 
-
-		char	strName[1024];
+		char strName[1024];
 		gethostname(strName, 1024);
 
-		//»ñÈ¡±¾µØ¼ÆËã»úÐÅÏ¢
+		// ï¿½ï¿½È¡ï¿½ï¿½ï¿½Ø¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï?
 		struct hostent *pHostEnt = gethostbyname(strName);
 		if (pHostEnt == NULL)
 		{
 			return "";
 		}
 
-		//»ñÈ¡±¾µØ¼ÆËã»úIPµØÖ·
+		// ï¿½ï¿½È¡ï¿½ï¿½ï¿½Ø¼ï¿½ï¿½ï¿½ï¿½IPï¿½ï¿½Ö·
 		int n = 0;
 		while (pHostEnt->h_addr_list[n] != NULL)
 		{
@@ -38,45 +38,84 @@ namespace ssTools
 		}
 
 		WSACleanup();
-		
-		ip = ss_keyJoint(ip_lst, "|");
 
-		return ip;
+		addrs = ss_keyJoint(ip_lst, ",");
+#else
+		// Linux
+		struct ifaddrs *ifAddrStruct = NULL;
+		void *tmpAddrPtr = NULL;
+
+		getifaddrs(&ifAddrStruct);
+
+		while (ifAddrStruct != NULL)
+		{
+			if (ifAddrStruct->ifa_addr != NULL)
+			{
+				if (ifAddrStruct->ifa_addr->sa_family == AF_INET)
+				{
+					tmpAddrPtr = &((struct sockaddr_in *)ifAddrStruct->ifa_addr)->sin_addr;
+					char addressBuffer[INET_ADDRSTRLEN];
+					inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
+					std::string ipstr(addressBuffer);
+					if (ipstr != "127.0.0.1")
+						ip_lst.push_back(ipstr);
+				}
+			}
+			// else if (ifAddrStruct->ifa_addr->sa_family == AF_INET6)
+			// { // check it is IP6
+			//     // is a valid IP6 Address
+			//     tmpAddrPtr = &((struct sockaddr_in *)ifAddrStruct->ifa_addr)->sin_addr;
+			//     char addressBuffer[INET6_ADDRSTRLEN];
+			//     inet_ntop(AF_INET6, tmpAddrPtr, addressBuffer, INET6_ADDRSTRLEN);
+			//     printf("%s IP Address %s\n", ifAddrStruct->ifa_name, addressBuffer);
+			// }
+			ifAddrStruct = ifAddrStruct->ifa_next;
+		}
+		for (int i = 0; i < ip_lst.size(); i++)
+		{
+			addrs += ip_lst[i];
+			if (i < ip_lst.size() - 1)
+				addrs += ",";
+		}
+
+#endif
+
+		return ip_lst;
 	}
 }
 //
-//#include <iostream>
-//#include <string>
-//#include <Winsock2.h>
-//#include <sstream>
+// #include <iostream>
+// #include <string>
+// #include <Winsock2.h>
+// #include <sstream>
 //
-//using namespace std;
+// using namespace std;
 //
-//#pragma comment(lib, "ws2_32.lib")
+// #pragma comment(lib, "ws2_32.lib")
 //
-//string	GetLocalIP()
+// string	GetLocalIP()
 //{
 //	string strIP("127.0.0.1");
 //
-//	//³õÊ¼»¯sock
+//	//ï¿½ï¿½Ê¼ï¿½ï¿½sock
 //	WSADATA WSAData;
 //	if (WSAStartup(MAKEWORD(2, 0), &WSAData) != 0)
 //	{
 //		return strIP;
 //	}
 //
-//	//»ñÈ¡±¾µØ¼ÆËã»úÖ÷»úÃû
+//	//ï¿½ï¿½È¡ï¿½ï¿½ï¿½Ø¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿?
 //	char	strName[1024];
 //	gethostname(strName, 1024);
 //
-//	//»ñÈ¡±¾µØ¼ÆËã»úÐÅÏ¢
+//	//ï¿½ï¿½È¡ï¿½ï¿½ï¿½Ø¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï?
 //	struct hostent *pHostEnt = gethostbyname(strName);
 //	if (pHostEnt == NULL)
 //	{
 //		return strIP;
 //	}
 //
-//	//»ñÈ¡±¾µØ¼ÆËã»úIPµØÖ·
+//	//ï¿½ï¿½È¡ï¿½ï¿½ï¿½Ø¼ï¿½ï¿½ï¿½ï¿½IPï¿½ï¿½Ö·
 //	int n = 0;
 //	while (pHostEnt->h_addr_list[n] != NULL)
 //	{
@@ -104,7 +143,7 @@ namespace ssTools
 //	return strIP;
 //}
 //
-//int main()
+// int main()
 //{
 //	cout << GetLocalIP() << endl;
 //

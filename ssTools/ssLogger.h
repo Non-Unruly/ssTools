@@ -28,17 +28,20 @@
 #include <thread>
 #include <mutex>
 
+#define 
+
 #else
 // Linux
 #include <pthread.h>
 #include <sys/time.h>
 #include <unistd.h>
 #include <sys/stat.h>
+
 #endif
 
 #include "ssTools.h"
 
-#define ssLoggerOpen(_path, _log_name, _level, _sync) ssLogger::init(_path, _log_name, _level, _sync)
+#define ssLoggerOpen(_path, _log_name, _level, _sync, _filesize) ssLogger::init(_path, _log_name, _level, _sync, _filesize)
 #define ssLoggerFlags(flags) ssLogger::SetLogPrefix(flags)
 
 #define ssloggerDebug(...) ssLogger::output(true, 1, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
@@ -82,7 +85,7 @@ public:
 	// level 日志精准等级[0~5] 等级越高，输出的日志越精确，日志量越少 the level of log , high level and fewer log and more accurate log
 	// tag 日志输出的前缀字段，时间（精确至毫秒）、日志等级、触发文件、触发函数、触发行号 the log prefix about time(ms),level,file,func,line number
 	// sync 同步日志开关 the sync/async mode of log , default is sync(true)
-	static bool init(const char *_logPath, const char *_name, LOG_LEVEL _level = LEVEL_ALL, bool sync = true);
+	static bool init(const char *_logPath, const char *_name, LOG_LEVEL _level = LEVEL_ALL, bool sync = true, unsigned int logFileSize = 256 * 1024 * 1024);
 
 	// 添加日志字符串
 	// print 是否输出到屏幕 whether the text is displayed on the screen
@@ -136,11 +139,17 @@ public:
 
 private:
 	static FILE *m_f;
+	static bool m_create_logfile();
+
+	static std::string m_fileBaseName;
 	static std::string m_fileName;
+	static std::string m_logPath;
 	static bool m_isInit;
 	static bool m_sync;
 	static int m_flags;
 	static std::vector<std::string> m_level_map;
+	static unsigned int m_file_max_size;
+	static unsigned int m_file_sum;
 
 #if defined _WIN32
 	static std::mutex m_qMtx;
