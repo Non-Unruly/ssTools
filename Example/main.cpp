@@ -11,11 +11,12 @@
 int main()
 {
 	
-	ssLoggerOpen("./log/example", "app", ssLogger::LEVEL_ALL, false);
+	ssLoggerOpen("./log/example", "app", ssLogger::LEVEL_ALL, false, 5 * 1024 * 1024);
 	ssLoggerFlags(PREFIX_TIME | PREFIX_FUNC | PREFIX_LINE | PREFIX_FILE);
 	ssloggerDebug("%08d", 19910915);
 	ssloggerInfo_np("%s", "ssTools");
-	auto ip = ssTools::GetLocalIPv4();
+	std::string ip;
+	auto ips = ssTools::GetLocalIPv4(ip);
 	ssloggerInfo("local ip: %s", ip.c_str());
 
 

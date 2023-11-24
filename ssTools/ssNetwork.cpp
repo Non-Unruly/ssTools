@@ -14,7 +14,7 @@ namespace ssTools
 		if (iResult != 0)
 		{
 			printf("WSAStartup failed with error: %d\n", iResult);
-			return "";
+			return ip_lst;
 		}
 
 		char strName[1024];
@@ -24,7 +24,7 @@ namespace ssTools
 		struct hostent *pHostEnt = gethostbyname(strName);
 		if (pHostEnt == NULL)
 		{
-			return "";
+			return ip_lst;
 		}
 
 		// ��ȡ���ؼ����IP��ַ
