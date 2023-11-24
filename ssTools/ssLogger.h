@@ -28,7 +28,6 @@
 #include <thread>
 #include <mutex>
 
-#define 
 
 #else
 // Linux
