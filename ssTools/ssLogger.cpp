@@ -144,7 +144,7 @@ std::string ssLogger::output(bool print, int level, const char *srcFileName, con
 		if (m_sync)
 		{
 			// sync mode
-			size_t length = prefix.size() + text.size() + 3;
+			size_t length = prefix.size() + text.size() + 2;
 			if (m_file_sum + length >= m_file_max_size)
 			{
 				m_isInit = m_create_logfile();
@@ -155,14 +155,14 @@ std::string ssLogger::output(bool print, int level, const char *srcFileName, con
 				}
 			}
 			char *log = new char[length];
-			sprintf(log, "%s%s\0", prefix.c_str(), text.c_str());
-			printf("%s\n", log);
+			sprintf(log, "%s%s\n\0", prefix.c_str(), text.c_str());
+			printf("%s", log);
 			fwrite(log, 1, length, m_f);
-#ifdef _WIN32
-			fwrite("\r\n", 1, 2, m_f);
-#else
-			fwrite("\n", 1, 1, m_f);
-#endif
+//#ifdef _WIN32
+//			fwrite("\n", 1, 1, m_f);
+//#else
+//			fwrite("\n", 1, 1, m_f);
+//#endif
 			m_file_sum += length;
 			fflush(m_f);
 			delete[] log;
@@ -250,14 +250,14 @@ void *ssLogger::m_LogThread(void *_arg)
 				}
 				ss_unlock(m_qMtx);
 				// if (!m_isInit)
-				printf("%s\n", log_t.log.c_str());
+				printf("%s", log_t.log.c_str());
 				m_file_sum += length;
 				fwrite(log_t.log.c_str(), 1, log_t.log.size(), m_f);
-#ifdef _WIN32
-				fwrite("\r\n", 1, 2, m_f);
-#else
-				fwrite("\n", 1, 1, m_f);
-#endif
+//#ifdef _WIN32
+//				fwrite("\r\n", 1, 2, m_f);
+//#else
+//				fwrite("\n", 1, 1, m_f);
+//#endif
 				fflush(m_f);
 				break;
 			}
