@@ -122,7 +122,7 @@ public:
 			text = _text;
 			isPrint = _isPrint;
 			isPrefix = _isPrefix;
-			log = prefix + text;
+			log = prefix + text + "\n";
 		};
 		//_SSLOG_INFO_T_(std::string _timetick, std::string _logType, std::string _file, std::string _function, int _line, std::string _logText, bool print = true)
 		//{
