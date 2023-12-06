@@ -16,7 +16,7 @@ int main()
 	ssloggerDebug("%08d", 19910915);
 	ssloggerInfo_np("%s", "ssTools");
 	std::string ip;
-	auto ips = ssTools::GetLocalIPv4(ip);
+	auto ips = ssTools::GetLocalIPv4(ip,"|");
 	ssloggerInfo("local ip: %s", ip.c_str());
 
 

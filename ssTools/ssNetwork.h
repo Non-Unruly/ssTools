@@ -13,7 +13,6 @@
 // windows
 #include <WinSock2.h>
 #include <ws2tcpip.h>
-#include <Windows.h>
 #pragma comment (lib, "ws2_32.lib")
 #pragma comment (lib, "Mswsock.lib")
 #pragma comment (lib, "AdvApi32.lib")
@@ -28,7 +27,7 @@
 
 namespace ssTools
 {
-	std::vector<std::string> GetLocalIPv4(std::string &addrs);
+	std::vector<std::string> GetLocalIPv4(std::string &addrs, const char* separator = ",");
 };
 
 #endif
