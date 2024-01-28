@@ -9,8 +9,8 @@
             "request": "launch",
             "type": "cppdbg",
             "program": "${workspaceRoot}/bin/example",
-            "cwd": "${workspaceRoot}/bin",
-            "externalConsole": true
+            "cwd": "${workspaceRoot}/bin"
+            // "externalConsole": true
         }
     ]
 }
