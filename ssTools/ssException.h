@@ -11,6 +11,7 @@
 #include <string>
 #include <exception>
 #include <string.h>
+#include <stdio.h>
 
 class ssException:
 	public std::exception

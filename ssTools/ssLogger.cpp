@@ -6,42 +6,61 @@
 
 #include "ssLogger.h"
 
-#if defined _WIN32
-std::mutex ssLogger::m_qMtx;
+#ifdef _WIN32
 #define SEPARATOR "\\"
 #else
-pthread_mutex_t ssLogger::m_qMtx;
 #define SEPARATOR "/"
 #endif
 
-std::queue<ssLogger::ssLog_info_t> ssLogger::m_logQueue;
-std::set<std::string> ssLogger::m_keys;
+std::vector<ssLogger *> ssLogger::m_loggers;
 
-bool ssLogger::m_isInit = false;
-bool ssLogger::m_sync = false;
-
-ssLogger::LOG_LEVEL ssLogger::m_logLevel = ssLogger::LEVEL_ALL;
-FILE *ssLogger::m_f = NULL;
-std::string ssLogger::m_fileBaseName = "";
-std::string ssLogger::m_fileName = "";
-std::string ssLogger::m_logPath = "./";
-std::vector<std::string> ssLogger::m_level_map = std::vector<std::string>();
-int ssLogger::m_flags = PREFIX_ALL;
-unsigned int ssLogger::m_file_max_size = 256 * 1024 * 1024; // 256MB
-unsigned int ssLogger::m_file_sum = 0;
-
-ssLogger::ssLogger()
+int ssLogger::Register(const char *_logPath, const char *_logFileName, const char *_logModuelName, LOG_LEVEL _level, bool _sync, unsigned int _logFileSize)
 {
+	for (int i = 0; i < m_loggers.size(); i++)
+	{
+		if (m_loggers[i]->GetModName() == std::string(_logModuelName))
+			return i;
+	}
+
+	std::string mod(_logModuelName);
+	ssLogger *logPtr = new ssLogger(_logPath, _logFileName, _logModuelName, _level, _sync, _logFileSize);
+	m_loggers.push_back(logPtr);
+	return m_loggers.size() - 1;
 }
 
-bool ssLogger::init(const char *_logPath, const char *_name, LOG_LEVEL _level, bool sync, unsigned int _logFileSize)
+ssLogger ssLogger::Logger(const char *module)
 {
-	m_fileBaseName = std::string(_name);
+	for (int i = 0; i < m_loggers.size(); i++)
+	{
+		if (m_loggers[i]->GetModName() == std::string(module))
+		{
+			return (*m_loggers[i]);
+		}
+	}
+	int index = ssLogger::Register("./log", module, module);
+	return (*m_loggers[index]);
+}
+
+ssLogger::ssLogger(const char *_logPath, const char *_logFileName, const char *_logModuleName, LOG_LEVEL _level, bool _sync, unsigned int _logFileSize)
+	: m_f(0), m_qMtx(0), m_logQueue(NULL)
+{
+	init(_logPath, _logFileName, _logModuleName, _level, _sync, _logFileSize);
+}
+
+bool ssLogger::init(const char *_logPath, const char *_logFileName, const char *_logModuleName, LOG_LEVEL _level, bool sync, unsigned int _logFileSize)
+{
+	m_qMtx = new pthread_mutex_t();
+	m_fileBaseName = std::string(_logFileName);
+	if (m_fileBaseName.length() == 0)
+		m_fileBaseName = "LOG";
 	m_logPath = _logPath;
+	m_moduleName = _logModuleName;
 	ssTools::ss_makePath(_logPath);
 	m_file_max_size = _logFileSize < (1 * 1024 * 1024) ? (1024 * 1024) : _logFileSize;
-
+	m_logLevel = _level;
+	m_sync = sync;
 	m_flags = PREFIX_ALL;
+
 	m_level_map.reserve(6);
 	m_level_map.resize(6);
 	m_level_map[LEVEL_ALL] = "[ALL]"; // 占位
@@ -52,8 +71,6 @@ bool ssLogger::init(const char *_logPath, const char *_name, LOG_LEVEL _level, b
 	m_level_map[LEVEL_DISASTER] = "[DIS]";
 
 	m_isInit = false;
-	m_logLevel = _level;
-	m_sync = sync;
 
 	if (!m_create_logfile())
 	{
@@ -62,27 +79,117 @@ bool ssLogger::init(const char *_logPath, const char *_name, LOG_LEVEL _level, b
 
 	if (!m_sync)
 	{
+		m_logQueue = new std::queue<ssLogger::ssLog_info_t>();
 		// async mode 异步模式
 #if defined _WIN32
 		std::thread thd(m_LogThread);
 		thd.detach();
 		m_isInit = true;
 #else
+		// 为了保证兼容性，linux采用系统api来实现多线程
 		pthread_t thd_t;
-		int res = pthread_create(&thd_t, NULL, &m_LogThread, NULL);
+		printf("sync thread ptr : %p\n", this);
+		int res = pthread_create(&thd_t, NULL, &m_LogThread, this);
 		if (res == 0)
 			m_isInit = true;
+		else
+			printf("create log thread failed\n");
 #endif
 	}
 	else
 	{
-		// sync mode 异步模式
+		// sync mode 同步模式
 		m_isInit = true;
 	}
 	return m_isInit;
 }
 
-std::string ssLogger::output(bool print, int level, const char *srcFileName, const char *functionName, int line, const char *format, ...)
+std::string ssLogger::Debug(bool print, const char *srcName, const char *funcName, int line, const char *format, ...)
+{
+	va_list args;
+	va_start(args, format);
+	int logLength = vsnprintf(nullptr, 0, format, args) + 1;
+	va_end(args);
+
+	va_list vlst;
+	va_start(vlst, format);
+	std::string text = ssFormat(logLength, format, vlst);
+	va_end(vlst);
+
+	std::string str = output(print, LEVEL_DBG, srcName, funcName, line, text);
+
+	return str;
+}
+
+std::string ssLogger::Info(bool print, const char *srcName, const char *funcName, int line, const char *format, ...)
+{
+	va_list args;
+	va_start(args, format);
+	int logLength = vsnprintf(nullptr, 0, format, args) + 1;
+	va_end(args);
+
+	va_list vlst;
+	va_start(vlst, format);
+	std::string text = ssFormat(logLength, format, vlst);
+	va_end(vlst);
+
+	std::string str = output(print, LEVEL_INF, srcName, funcName, line, text);
+
+	return str;
+}
+
+std::string ssLogger::Warn(bool print, const char *srcName, const char *funcName, int line, const char *format, ...)
+{
+	va_list args;
+	va_start(args, format);
+	int logLength = vsnprintf(nullptr, 0, format, args) + 1;
+	va_end(args);
+
+	va_list vlst;
+	va_start(vlst, format);
+	std::string text = ssFormat(logLength, format, vlst);
+	va_end(vlst);
+
+	std::string str = output(print, LEVEL_WAR, srcName, funcName, line, text);
+
+	return str;
+}
+
+std::string ssLogger::Error(bool print, const char *srcName, const char *funcName, int line, const char *format, ...)
+{
+	va_list args;
+	va_start(args, format);
+	int logLength = vsnprintf(nullptr, 0, format, args) + 1;
+	va_end(args);
+
+	va_list vlst;
+	va_start(vlst, format);
+	std::string text = ssFormat(logLength, format, vlst);
+	va_end(vlst);
+
+	std::string str = output(print, LEVEL_ERR, srcName, funcName, line, text);
+
+	return str;
+}
+
+std::string ssLogger::Disaster(bool print, const char *srcName, const char *funcName, int line, const char *format, ...)
+{
+	va_list args;
+	va_start(args, format);
+	int logLength = vsnprintf(nullptr, 0, format, args) + 1;
+	va_end(args);
+
+	va_list vlst;
+	va_start(vlst, format);
+	std::string text = ssFormat(logLength, format, vlst);
+	va_end(vlst);
+
+	std::string str = output(print, LEVEL_DISASTER, srcName, funcName, line, text);
+
+	return str;
+}
+
+std::string ssLogger::output(bool print, int level, const char *srcFileName, const char *functionName, int line, std::string text)
 {
 	if (!m_isInit)
 	{
@@ -90,9 +197,8 @@ std::string ssLogger::output(bool print, int level, const char *srcFileName, con
 		return "";
 	}
 
-	ss_lock(m_qMtx);
+	ss_lock(*m_qMtx);
 	std::string prefix = "";
-	std::string text;
 
 	if ((m_flags & PREFIX_TIME) == PREFIX_TIME)
 	{
@@ -102,6 +208,7 @@ std::string ssLogger::output(bool print, int level, const char *srcFileName, con
 	{
 		prefix += m_level_map[level];
 	}
+	prefix += "[" + (m_moduleName == "" ? "MAIN" : m_moduleName) + "]";
 
 	std::string preFile;
 	std::string preFunc;
@@ -128,16 +235,7 @@ std::string ssLogger::output(bool print, int level, const char *srcFileName, con
 		srcInfo = "[" + srcInfo + "]";
 	prefix += srcInfo;
 
-	va_list args;
-	va_start(args, format);
-	int logLength = vsnprintf(nullptr, 0, format, args) + 1;
-	va_end(args);
-
-	va_list vlst;
-	va_start(vlst, format);
-	text = ssFormat(logLength, format, vlst);
 	ssLog_info_t t(prefix, text, print);
-	va_end(vlst);
 
 	if (level >= m_logLevel)
 	{
@@ -150,19 +248,20 @@ std::string ssLogger::output(bool print, int level, const char *srcFileName, con
 				m_isInit = m_create_logfile();
 				if (!m_isInit)
 				{
-					ss_unlock(m_qMtx);
+					ss_unlock(*m_qMtx);
 					return text;
 				}
 			}
 			char *log = new char[length];
+			memset(log, 0, length);
 			sprintf(log, "%s%s\n\0", prefix.c_str(), text.c_str());
 			printf("%s", log);
-			fwrite(log, 1, length, m_f);
-//#ifdef _WIN32
-//			fwrite("\n", 1, 1, m_f);
-//#else
-//			fwrite("\n", 1, 1, m_f);
-//#endif
+			fwrite(log, 1, strlen(log), m_f);
+			// #ifdef _WIN32
+			//			fwrite("\n", 1, 1, m_f);
+			// #else
+			//			fwrite("\n", 1, 1, m_f);
+			// #endif
 			m_file_sum += length;
 			fflush(m_f);
 			delete[] log;
@@ -170,18 +269,18 @@ std::string ssLogger::output(bool print, int level, const char *srcFileName, con
 		else
 		{
 			// async mode
-			m_logQueue.push(t);
+			m_logQueue->push(t);
 		}
 	}
 
-	ss_unlock(m_qMtx);
+	ss_unlock(*m_qMtx);
 
 	return text;
 }
 
-void ssLogger::SetLogPrefix(int flags)
+std::string ssLogger::GetModName()
 {
-	m_flags = flags;
+	return m_moduleName;
 }
 
 bool ssLogger::m_create_logfile()
@@ -213,22 +312,23 @@ std::string ssLogger::ssFormat(int length, const char *format, va_list vlist)
 	return res;
 }
 
-#if defined _WIN32
-void ssLogger::m_LogThread()
+#ifdef _WIN32
+void ssLogger::m_LogThread(void *_arg)
 #else
 void *ssLogger::m_LogThread(void *_arg)
 #endif
 {
+	ssLogger *self = (ssLogger *)_arg;
 	while (true)
 	{
-		while (m_isInit)
+		while (self->m_isInit)
 		{
-			ss_lock(m_qMtx);
-			int s = m_logQueue.size();
+			self->ss_lock(*self->m_qMtx);
+			int s = self->m_logQueue->size();
 			if (s <= 0)
 			{
-				ss_unlock(m_qMtx);
-#if defined _WIN32
+				self->ss_unlock(*self->m_qMtx);
+#ifdef _WIN32
 				Sleep(50);
 #else
 				usleep(50 * 1000);
@@ -236,42 +336,42 @@ void *ssLogger::m_LogThread(void *_arg)
 			}
 			else
 			{
-				ssLog_info_t log_t = m_logQueue.front();
-				m_logQueue.pop();
+				ssLog_info_t log_t = self->m_logQueue->front();
+				self->m_logQueue->pop();
 				size_t length = log_t.log.size();
-				if (length + m_file_sum >= m_file_max_size)
+				if (length + self->m_file_sum >= self->m_file_max_size)
 				{
-					m_isInit = m_create_logfile();
-					if (!m_isInit)
+					self->m_isInit = self->m_create_logfile();
+					if (!self->m_isInit)
 					{
-						ss_unlock(m_qMtx);
+						self->ss_unlock(*self->m_qMtx);
 						continue;
 					}
 				}
-				ss_unlock(m_qMtx);
+				self->ss_unlock(*self->m_qMtx);
 				// if (!m_isInit)
 				printf("%s", log_t.log.c_str());
-				m_file_sum += length;
-				fwrite(log_t.log.c_str(), 1, log_t.log.size(), m_f);
-//#ifdef _WIN32
-//				fwrite("\r\n", 1, 2, m_f);
-//#else
-//				fwrite("\n", 1, 1, m_f);
-//#endif
-				fflush(m_f);
+				self->m_file_sum += length;
+				fwrite(log_t.log.c_str(), 1, log_t.log.size(), self->m_f);
+				// #ifdef _WIN32
+				//				fwrite("\r\n", 1, 2, m_f);
+				// #else
+				//				fwrite("\n", 1, 1, m_f);
+				// #endif
+				fflush(self->m_f);
 				break;
 			}
 		}
 	}
 END:
-#if defined _WIN32
+#ifdef _WIN32
 	return;
 #else
 	return NULL;
 #endif
 }
 
-#if defined _WIN32
+#ifdef _WIN32
 void ssLogger::ss_lock(std::mutex &_mtx)
 {
 	_mtx.lock();

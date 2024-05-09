@@ -10,23 +10,23 @@
 
 int main()
 {
-	
-	ssLoggerOpen("./log/example", "app", ssLogger::LEVEL_ALL, false, 5 * 1024 * 1024);
-	ssLoggerFlags(PREFIX_TIME | PREFIX_FUNC | PREFIX_LINE | PREFIX_FILE);
-	ssloggerDebug("%08d", 19910915);
-	ssloggerInfo_np("%s", "ssTools");
-	std::string ip;
-	auto ips = ssTools::GetLocalIPv4(ip,"|");
-	ssloggerInfo("local ip: %s", ip.c_str());
-
-
-	while (true)
+	std::cout << __cplusplus << std::endl;
+#if defined(_WIN32) || __cplusplus >= 201103L
+	std::cout << "c++11" << std::endl;
+#endif
+	ssLogger::Register("./log", "A", "A");
+	ssLogger::Register("./log", "B", "B");
+	ssLogger::Register("./log", "root", "", ssLogger::LEVEL_ALL, false, 256 * 1024);
+	sslogger().debug("sslogger launch %s !!!", ssTools::ss_datetime_simple().c_str());
+	for (int i = 0; i < 100; i++)
 	{
-		ssloggerDebug("%s", ssTools::ss_datetime().c_str());
+		sslogger("A").debug("hello world sslogger %s %d", "A hbshi3", i);
+		sslogger("B").info("hello world sslogger %s %d", "B hbshi3", i);
+		sslogger().error("hello word %s", "no module name %d", i);
 #ifndef _WIN32
-		usleep(3 * 1000 * 1000);
+		usleep(1 * 1000 * 1000);
 #else
-		Sleep(300);
+		Sleep(100);
 #endif
 	}
 
