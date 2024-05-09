@@ -23,6 +23,7 @@ int main()
 		sslogger("A").debug("hello world sslogger %s %d", "A hbshi3", i);
 		sslogger("B").info("hello world sslogger %s %d", "B hbshi3", i);
 		sslogger().error("hello word %s %d", "no module name", i);
+		sslogger("C").info("this is no register log , default %02x", i);
 #ifndef _WIN32
 		usleep(1 * 1000 * 1000);
 #else
