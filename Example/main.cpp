@@ -22,7 +22,7 @@ int main()
 	{
 		sslogger("A").debug("hello world sslogger %s %d", "A hbshi3", i);
 		sslogger("B").info("hello world sslogger %s %d", "B hbshi3", i);
-		sslogger().error("hello word %s", "no module name %d", i);
+		sslogger().error("hello word %s %d", "no module name", i);
 #ifndef _WIN32
 		usleep(1 * 1000 * 1000);
 #else

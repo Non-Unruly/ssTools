@@ -24,7 +24,7 @@
 #include <queue>
 #include <cstdio>
 
-#ifdef _WIN32
+#if defined(_WIN32) || __cplusplus >= 201103L
 
 #include <thread>
 #include <mutex>
@@ -148,8 +148,8 @@ private:
 	unsigned int m_file_max_size;
 	unsigned int m_file_sum;
 
-#ifdef _WIN32
-	std::mutex m_qMtx;
+#if defined(_WIN32) || __cplusplus >= 201103L
+	std::mutex *m_qMtx;
 #else
 	pthread_mutex_t *m_qMtx;
 #endif
@@ -157,14 +157,14 @@ private:
 
 	std::string ssFormat(int length, const char *_format, va_list _vlist);
 
-#ifdef _WIN32
+#if defined(_WIN32) || __cplusplus >= 201103L
 	static void m_LogThread(void *_arg);
 #else
 	static void *m_LogThread(void *_arg);
 #endif
 	LOG_LEVEL m_logLevel;
 
-#ifdef _WIN32
+#if defined(_WIN32) || __cplusplus >= 201103L
 	void ss_lock(std::mutex &_mtx);
 	void ss_unlock(std::mutex &_mtx);
 #else

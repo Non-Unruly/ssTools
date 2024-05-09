@@ -49,7 +49,11 @@ ssLogger::ssLogger(const char *_logPath, const char *_logFileName, const char *_
 
 bool ssLogger::init(const char *_logPath, const char *_logFileName, const char *_logModuleName, LOG_LEVEL _level, bool sync, unsigned int _logFileSize)
 {
+#if defined(_WIN32) || __cplusplus >= 201103L
+	m_qMtx = new std::mutex;
+#else
 	m_qMtx = new pthread_mutex_t();
+#endif
 	m_fileBaseName = std::string(_logFileName);
 	if (m_fileBaseName.length() == 0)
 		m_fileBaseName = "LOG";
@@ -81,8 +85,8 @@ bool ssLogger::init(const char *_logPath, const char *_logFileName, const char *
 	{
 		m_logQueue = new std::queue<ssLogger::ssLog_info_t>();
 		// async mode 异步模式
-#if defined _WIN32
-		std::thread thd(m_LogThread);
+#if defined(_WIN32) || __cplusplus >= 201103L
+		std::thread thd(m_LogThread,this);
 		thd.detach();
 		m_isInit = true;
 #else
@@ -312,7 +316,7 @@ std::string ssLogger::ssFormat(int length, const char *format, va_list vlist)
 	return res;
 }
 
-#ifdef _WIN32
+#if defined(_WIN32) || __cplusplus >= 201103L
 void ssLogger::m_LogThread(void *_arg)
 #else
 void *ssLogger::m_LogThread(void *_arg)
@@ -364,14 +368,14 @@ void *ssLogger::m_LogThread(void *_arg)
 		}
 	}
 END:
-#ifdef _WIN32
+#if defined(_WIN32) || __cplusplus >= 201103L
 	return;
 #else
 	return NULL;
 #endif
 }
 
-#ifdef _WIN32
+#if defined(_WIN32) || __cplusplus >= 201103L
 void ssLogger::ss_lock(std::mutex &_mtx)
 {
 	_mtx.lock();
