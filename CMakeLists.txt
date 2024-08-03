@@ -12,7 +12,7 @@ add_executable(example ${CPPS} ${CMAKE_SOURCE_DIR}/Example/main.cpp)
 
 if(${CMAKE_HOST_SYSTEM_NAME} MATCHES "Windows")
     message("os: windows")
-    target_link_libraries(example)
+    target_link_libraries(example -lws2_32)
 else()
     message("os: linux")
     target_link_libraries(example pthread)

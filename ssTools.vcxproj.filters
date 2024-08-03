@@ -57,5 +57,8 @@
     <ClInclude Include="ssTools\ssNetwork.h">
       <Filter>ssTools</Filter>
     </ClInclude>
+    <ClInclude Include="ssTools\ssArgs.h">
+      <Filter>ssTools</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

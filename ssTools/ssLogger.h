@@ -40,12 +40,18 @@
 
 #include "ssTools.h"
 
-#define sslogger(_module) ssLogger::Logger(_module)
-#define debug(...) Debug(false, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
-#define info(...) Info(false, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
-#define warn(...) Warn(false, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
-#define error(...) Error(false, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
-#define disaster(...) Disaster(false, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define ss(_module) ssLogger::Logger(_module)
+#define loggerDebug(...) Debug(true, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define loggerInfo(...) Info(true, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define loggerWarn(...) Warn(true, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define loggerError(...) Error(true, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define loggerDisaster(...) Disaster(true, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+
+#define loggerDebug_np(...) Debug(false, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define loggerInfo_np(...) Info(false, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define loggerWarn_np(...) Warn(false, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define loggerError_np(...) Error(false, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define loggerDisaster_np(...) Disaster(false, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 
 #define PREFIX_TIME 0b00001	 // 时间戳
 #define PREFIX_LEVEL 0b00010 // 等级字符串

@@ -86,7 +86,7 @@ bool ssLogger::init(const char *_logPath, const char *_logFileName, const char *
 		m_logQueue = new std::queue<ssLogger::ssLog_info_t>();
 		// async mode 异步模式
 #if defined(_WIN32) || __cplusplus >= 201103L
-		std::thread thd(m_LogThread,this);
+		std::thread thd(m_LogThread, this);
 		thd.detach();
 		m_isInit = true;
 #else
@@ -206,7 +206,7 @@ std::string ssLogger::output(bool print, int level, const char *srcFileName, con
 
 	if ((m_flags & PREFIX_TIME) == PREFIX_TIME)
 	{
-		prefix += "[" + ssTools::ss_datetime() + "]";
+		prefix += "[" + ssTools::ss_datetime("-") + "]";
 	}
 	if ((m_flags & PREFIX_LEVEL) == PREFIX_LEVEL)
 	{
